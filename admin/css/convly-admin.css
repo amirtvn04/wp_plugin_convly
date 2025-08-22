@@ -1,0 +1,548 @@
+/**
+ * Convly Admin Styles
+ */
+
+/* Import Montserrat Font */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap');
+
+/* Hide WordPress default title */
+.wrap > h1:first-child {
+    display: none !important;
+}
+
+/* Background Color */
+#wpbody-content {
+    background-color: #F6F6F6 !important;
+}
+
+/* Top Navigation Bar */
+.convly-top-nav {
+    background-color: #060606;
+    border-radius: 12px;
+    height: 90px;
+    margin: 30px 30px 30px 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+}
+
+.convly-nav-menu {
+    display: flex;
+    gap: 40px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.convly-nav-menu a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 400;
+    font-size: 20px;
+    transition: all 0.3s ease;
+}
+
+.convly-nav-menu a:hover {
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.convly-nav-menu a.active {
+    color: #FFFFFF;
+    font-weight: 600;
+}
+
+.convly-nav-logo img {
+    height: 50px;
+}
+
+/* Main Dashboard Container */
+.convly-dashboard {
+    padding: 0 30px 30px 30px;
+}
+
+/* Summary Cards Section */
+.convly-summary-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.convly-card {
+    background: #FFFFFF;
+    border-radius: 12px;
+    padding: 25px 30px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.convly-card h3 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 28px;
+    color: #060606;
+    margin: 0 0 20px 0;
+}
+
+.convly-metric {
+    margin-bottom: 16px;
+}
+
+.convly-metric-value {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 48px;
+    color: #060606;
+    line-height: 1;
+}
+
+.convly-metric-suffix {
+    font-size: 24px;
+    font-weight: 500;
+    color: #666666;
+}
+
+.convly-metric-change {
+    display: block;
+    margin-top: 12px;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.convly-metric-change.positive {
+    color: #10B981;
+}
+
+.convly-metric-change.negative {
+    color: #EF4444;
+}
+
+/* Period Selector */
+.convly-period-select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #EFEFEF;
+    border-radius: 8px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    background: #FFFFFF;
+}
+
+/* Chart Container */
+.convly-chart-container {
+    background: #FFFFFF;
+    border-radius: 12px;
+    padding: 25px 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.convly-chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.convly-chart-header h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 28px;
+    color: #060606;
+    margin: 0;
+}
+
+/* Period Buttons */
+.convly-period-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.convly-period-btn {
+    background: none;
+    border: none;
+    color: #999999;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    padding: 8px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 50px;
+}
+
+.convly-period-btn:hover {
+    color: #666666;
+}
+
+.convly-period-btn.active {
+    background: #F5F5F5;
+    color: #060606;
+    font-weight: 600;
+}
+
+#convly-main-chart {
+    height: 350px;
+}
+
+/* Pages Table Section */
+.convly-pages-table-container {
+    background: #FFFFFF;
+    border-radius: 12px;
+    padding: 25px 30px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.convly-pages-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.convly-pages-header h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 28px;
+    color: #060606;
+    margin: 0;
+}
+
+.convly-header-actions {
+    display: flex;
+    gap: 16px;
+}
+
+/* Export PDF and Sync Buttons */
+#convly-export-pdf,
+#convly-sync-pages {
+    background: #FFFFFF !important;
+    color: #060606 !important;
+    border: 1px solid #EFEFEF !important;
+    border-radius: 10px !important;
+    padding: 6px 20px !important;
+    font-family: 'Montserrat', sans-serif !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    height: auto !important;
+    line-height: 1.5 !important;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#convly-export-pdf:hover,
+#convly-sync-pages:hover {
+    background: #F5F5F5 !important;
+    border-color: #E0E0E0 !important;
+}
+
+/* Tabs */
+.convly-tab-list {
+    display: flex;
+    gap: 8px;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 25px 0;
+}
+
+.convly-tab {
+    padding: 10px 24px;
+    background: none;
+    border: none;
+    color: #999999;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 50px;
+    text-decoration: none;
+}
+
+.convly-tab:hover {
+    color: #666666;
+    text-decoration: none;
+}
+
+.convly-tab.active {
+    background: #F5F5F5;
+    color: #060606;
+    font-weight: 600;
+}
+
+/* Filters */
+.convly-filters {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.convly-filters label {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    color: #666666;
+}
+
+.convly-filters select,
+.convly-filters input {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    padding: 8px 16px;
+    border: 1px solid #EFEFEF;
+    border-radius: 8px;
+    background: #FFFFFF;
+}
+
+/* Table */
+.convly-pages-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.convly-pages-table thead th {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #F0F0F0;
+    color: #999999;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 16px;
+    text-align: left;
+}
+
+.convly-pages-table tbody td {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    color: #333333;
+    padding: 20px 16px;
+    border: none;
+    border-bottom: 1px solid #F8F8F8;
+}
+
+.convly-pages-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.convly-pages-table tbody tr:hover {
+    background: #FAFAFA;
+}
+
+/* Add Button */
+.convly-add-button {
+    background: #FFFFFF !important;
+    color: #060606 !important;
+    border: 1px solid #EFEFEF !important;
+    border-radius: 10px !important;
+    padding: 6px 20px !important;
+    font-family: 'Montserrat', sans-serif !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    height: auto !important;
+    line-height: 1.5 !important;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.convly-add-button:hover {
+    background: #F5F5F5 !important;
+    border-color: #E0E0E0 !important;
+}
+
+/* Keep existing styles below this line */
+
+/* Status Toggle */
+.convly-status-toggle {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.convly-status-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.convly-status-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.convly-status-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+.convly-status-toggle input:checked + .convly-status-slider {
+    background-color: #2196F3;
+}
+
+.convly-status-toggle input:checked + .convly-status-slider:before {
+    transform: translateX(26px);
+}
+
+/* Conversion Rate Colors */
+.convly-conversion-rate {
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 16px;
+    display: inline-block;
+}
+
+.convly-conversion-rate.high {
+    background-color: #D4EDDA;
+    color: #155724;
+}
+
+.convly-conversion-rate.medium {
+    background-color: #FFF3CD;
+    color: #856404;
+}
+
+.convly-conversion-rate.low {
+    background-color: #F8D7DA;
+    color: #721C24;
+}
+
+/* Action Buttons */
+.convly-action-btn {
+    text-decoration: none;
+    padding: 6px 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    display: inline-block;
+    transition: all 0.2s;
+}
+
+.convly-action-btn.primary {
+    background-color: #0073aa;
+    color: #fff;
+}
+
+.convly-action-btn.primary:hover {
+    background-color: #005a87;
+    color: #fff;
+}
+
+/* Loading */
+.convly-loading {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+.convly-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #0073aa;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Modals */
+.convly-modal {
+    display: none;
+    position: fixed;
+    z-index: 100000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.convly-modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 30px;
+    border: 1px solid #ddd;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 5px;
+}
+
+.convly-modal-close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.convly-modal-close:hover,
+.convly-modal-close:focus {
+    color: #000;
+}
+
+/* Form in Modal */
+.convly-form-group {
+    margin-bottom: 20px;
+}
+
+.convly-form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.convly-form-group input,
+.convly-form-group select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* Pagination */
+.convly-pagination {
+    display: none;
+}
+
+/* Responsive */
+@media (max-width: 782px) {
+    .convly-summary-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .convly-pages-header {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+}
