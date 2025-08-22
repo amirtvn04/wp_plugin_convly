@@ -127,7 +127,7 @@ class Convly_Core {
     $this->loader->add_action('wp_ajax_convly_get_button_chart_data', $plugin_ajax, 'get_button_chart_data');
 	
 	$this->loader->add_action('wp_ajax_nopriv_convly_track_scroll', $plugin_ajax, 'track_scroll');
-$this->loader->add_action('wp_ajax_convly_track_scroll', $plugin_ajax, 'track_scroll');
+    $this->loader->add_action('wp_ajax_convly_track_scroll', $plugin_ajax, 'track_scroll');
     
     // Settings page AJAX actions
     $this->loader->add_action('wp_ajax_convly_export_all_data', $plugin_ajax, 'export_all_data');
