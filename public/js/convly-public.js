@@ -99,7 +99,7 @@ this.trackScrollDepth();
                     console.error('Convly: Failed to track button click');
                 }
             });
-        }
+        },
 		
 		trackScrollDepth: function() {
     let maxScroll = 0;

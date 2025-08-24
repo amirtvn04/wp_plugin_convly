@@ -16,8 +16,8 @@
     $(document).ready(function () {
         // Load initial data
         loadSummaryCards();
-        loadMainChart('30_days', true);
-        loadPagesList();
+        loadMainChart('7_days', true);
+        loadPagesList(true);
 
         // Event handlers
         bindEventHandlers();
@@ -42,18 +42,6 @@
             loadPagesList();
         });
 
-        // Add custom tab
-        $('.convly-add-tab').on('click', function (e) {
-            e.preventDefault();
-            $('#convly-custom-tab-modal').show();
-        });
-
-        // Custom tab form submission
-        $('#convly-custom-tab-form').on('submit', function (e) {
-            e.preventDefault();
-            addCustomTab();
-        });
-
         // Date filter
         $('#convly-date-filter').on('change', function () {
             if ($(this).val() === 'custom') {
@@ -74,11 +62,6 @@
         // Sort by
         $('#convly-sort-by').on('change', function () {
             loadPagesList();
-        });
-
-        // Export PDF
-        $('#convly-export-pdf').on('click', function () {
-            exportPDFReport();
         });
 
         // Modal close buttons
@@ -222,8 +205,8 @@
                             <span class="item_filter" data-period="12_months">12 months</span>
                             <span class="item_filter" data-period="6_months">6 months</span>
                             <span class="item_filter" data-period="3_months">3 months</span>
-                            <span class="item_filter active" data-period="30_days">30 days</span>
-                            <span class="item_filter" data-period="7_days">7 days</span>
+                            <span class="item_filter" data-period="30_days">30 days</span>
+                            <span class="item_filter active" data-period="7_days">7 days</span>
                             <span class="item_filter" data-period="24_hours">24 hours</span>
                         </div>
                         
@@ -304,239 +287,385 @@
         window.convlyChart.render();
     }
 
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
     // Load pages list
-    function loadPagesList() {
+    function loadPagesList(showSkeleton = true) {
         const $table_section = $('#table-section');
+        const $tbody = $('#convly_page_list');
 
-        $table_section.html(`
-        <div class="skeleton h-10 w-44 mb-8"></div>
-
-        <div class="flex items-center gap-x-7 mt-8 mb-20">
-            <div class="skeleton w-35 h-9"></div>
-            <div class="skeleton w-35 h-9"></div>
-            <div class="skeleton w-35 h-9"></div>
-        </div>
-
-        <div class="space-y-4">
-            <!-- Table Header -->
-            <div class="flex justify-between items-center py-4 border-b border-gray-200">
-                <div class="skeleton w-22 h-6"></div>
-                <div class="skeleton w-22 h-6"></div>
-                <div class="skeleton w-22 h-6"></div>
-                <div class="skeleton w-22 h-6"></div>
-                <div class="skeleton w-22 h-6"></div>
-                <div class="skeleton w-22 h-6"></div>
+        if (showSkeleton) {
+            $table_section.html(`
+            <div class="skeleton h-10 w-44 mb-8"></div>
+            <div class="flex items-center gap-x-7 mt-8 mb-20">
+                <div class="skeleton w-35 h-9"></div>
+                <div class="skeleton w-35 h-9"></div>
+                <div class="skeleton w-35 h-9"></div>
             </div>
-
-            <!-- Table Rows -->
-            <div class="space-y-5 divide-y divide-gray-200">
-                <div class="flex justify-between items-center py-4">
-                    <div class="skeleton h-7 w-29"></div>
-                    <div class="skeleton h-7 w-29"></div>
-                    <div class="skeleton h-7 w-29"></div>
-                    <div class="skeleton h-7 w-29"></div>
-                    <div class="skeleton h-7 w-29"></div>
-                    <div class="skeleton h-7 w-29"></div>
+            <div class="space-y-4">
+                <div class="flex justify-between items-center py-4 border-b border-gray-200">
+                    ${Array(7).fill('<div class="skeleton w-22 h-6"></div>').join('')}
                 </div>
-                <div class="flex justify-between items-center py-4">
-                    <div class="skeleton h-7 w-29"></div>
-                    <div class="skeleton h-7 w-29"></div>
-                    <div class="skeleton h-7 w-29"></div>
-                    <div class="skeleton h-7 w-29"></div>
-                    <div class="skeleton h-7 w-29"></div>
-                    <div class="skeleton h-7 w-29"></div>
-                </div>
-                <div class="flex justify-between items-center py-4">
-                    <div class="skeleton h-7 w-29"></div>
-                    <div class="skeleton h-7 w-29"></div>
-                    <div class="skeleton h-7 w-29"></div>
-                    <div class="skeleton h-7 w-29"></div>
-                    <div class="skeleton h-7 w-29"></div>
-                    <div class="skeleton h-7 w-29"></div>
-                </div>
-                <div class="flex justify-between items-center py-4">
-                    <div class="skeleton h-7 w-29"></div>
-                    <div class="skeleton h-7 w-29"></div>
-                    <div class="skeleton h-7 w-29"></div>
-                    <div class="skeleton h-7 w-29"></div>
-                    <div class="skeleton h-7 w-29"></div>
-                    <div class="skeleton h-7 w-29"></div>
+                <div class="space-y-5 divide-y divide-gray-200">
+                    ${Array(4).fill(`
+                        <div class="flex justify-between items-center py-4">
+                            ${Array(7).fill('<div class="skeleton h-7 w-29"></div>').join('')}
+                        </div>
+                    `).join('')}
                 </div>
             </div>
-        </div>
-        `)
+        `);
+        } else {
+            $tbody.html(`
+            <tr>
+                <td colspan="7">
+                    <div class="space-y-4 py-8">
+                        ${Array(5).fill(`
+                            <div class="flex justify-between items-center py-4">
+                                ${Array(7).fill('<div class="skeleton h-7 w-29"></div>').join('')}
+                            </div>
+                        `).join('')}
+                    </div>
+                </td>
+            </tr>
+        `);
+        }
 
-        const data = {
+        const searchTerm = $('#page-search-input').val() ? $('#page-search-input').val().trim() : '';
+
+        const requestData = {
             action: 'convly_get_page_list',
             nonce: convly_ajax.nonce,
             tab: currentTab,
             page: currentPage,
             per_page: -1,
             sort_by: $('#convly-sort-by').val(),
-            date_filter: $('#convly-date-filter').val()
+            date_filter: $('#convly-date-filter').val(),
+            search: searchTerm
         };
 
         if ($('#convly-date-filter').val() === 'custom') {
-            data.date_from = $('#convly-date-from').val();
-            data.date_to = $('#convly-date-to').val();
+            requestData.date_from = $('#convly-date-from').val();
+            requestData.date_to = $('#convly-date-to').val();
         }
 
         $.ajax({
             url: convly_ajax.ajax_url,
             type: 'POST',
-            data: data,
-            success: function (response) {
+            data: requestData,
+            success: function(response) {
                 if (response.success) {
-                    $table_section.html(`
-                <div class="flex items-center justify-between">
-                    <h5 class="text-3xl font-bold">All Pages</h5>
-                    <div class="text-base font-semibold">
-                        <button class="px-5 py-2.5 border border-black/20 rounded-xl mr-4 cursor-pointer">Export
-                            Report</button>
-                        <button class="px-5 py-2.5 border border-black/20 rounded-xl cursor-pointer">Sync Pages</button>
-                    </div>
-                </div>
-                
-                <div id="tabs" class="flex gap-x-3 mt-15 border-b border-gray3 text-base font-semibold">
-                    <button class="convly-tab tab-btn active-tab" data-tab="pages">Pages</button>
-                    <button class="convly-tab tab-btn" data-tab="products">Products</button>
-                    <button class="convly-tab tab-btn" data-tab="posts">Posts</button>
-                    <button class="convly-custom-tabs tab-btn" style="display: none;"></button>
-                    <button class="convly-add-tab tab-btn">+</button>
-                </div>
-                
-                
-      
-                
-                
-                <!-- Filters -->
-                <div class="flex items-center gap-10 mt-7">
-                    <input type="text" placeholder="Search Page Name ..."
-                        class="convly_input" />
-
-                    <div class="flex items-center space-x-2">
-                        <span class="text-gray-500 font-medium text-sm">Date Range:</span>
-                        <select
-                            class="convly_slect">
-                            <option>All Time</option>
-                            <option>Last 7 days</option>
-                            <option>Last 30 days</option>
-                        </select>
-                    </div>
-
-
-
-            
-            
-            <div class="convly-filters">
-            <div class="convly-filter-group">
-                <label>1</label>
-                <select id="convly-date-filter">
-                    <option value="all">0</option>
-                    <option value="today">0</option>
-                    <option value="yesterday">0</option>
-                    <option value="7_days">0</option>
-                    <option value="30_days">0</option>
-                    <option value="custom">1</option>
-                </select>
-                <div class="convly-custom-date-range" style="display:none;">
-                    <input type="date" id="convly-date-from"/>
-                    <span>77</span>
-                    <input type="date" id="convly-date-to"/>
-                </div>
-            </div>
-
-            <div class="convly-filter-group">
-                <label>cc</label>
-                <select id="convly-sort-by">
-                    <option value="views_desc" selected>22</option>
-                    <option value="conversion_rate_desc">3</option>
-                    <option value="clicks_desc">4</option>
-                    <option value="name_asc">44</option>
-                    <option value="name_desc">3</option>
-                </select>
-            </div>
-        </div>
-
-
-                    <div class="flex items-center space-x-2">
-                        <span class="text-gray-500 font-medium text-sm">Sort By:</span>
-                        <select
-                            class="convly_slect">
-                            <option>Views (High to Low)</option>
-                            <option>Views (Low to High)</option>
-                            <option>Conversion Rate</option>
-                        </select>
-                    </div>
-                </div>
-               
-                <table class="w-full table-auto divide-y divide-gray-200 mt-20">
-                    <thead class="text-sm text-left">
-                        <tr class="*:font-medium *:py-4 text-gray-500">
-                            <th>STATUS</th>
-                            <th class="w-1/3">PAGE NAME</th>
-                            <th>UNIQUE VISITORS</th>
-                            <th>TOTAL VIEWS</th>
-                            <th>BUTTON CLICKS</th>
-                            <th>CONVERSION RATE</th>
-                            <th>ACTIONS</th>
-                        </tr>
-                    </thead>
-                    <tbody id="convly_page_list" class="text-base font-semibold divide-y divide-gray-200">
-
-                    </tbody>
-                </table>
-                `);
-
-                    renderPagesList(response.data);
-
-
-                    const tabs = document.querySelectorAll("#tabs .tab-btn");
-
-                    tabs.forEach(btn => {
-                        btn.addEventListener("click", () => {
-                            tabs.forEach(b => b.classList.remove("active-tab"));
-                            btn.classList.add("active-tab");
-                        });
-                    });
-
-
-                    // Tab switching
-                    $('.convly-tab').on('click', function (e) {
-                        e.preventDefault();
-                        $('.convly-tab').removeClass('active');
-                        $(this).addClass('active');
-                        currentTab = $(this).data('tab');
-                        currentPage = 1;
-                        loadPagesList();
-                    });
-
-                    // Add custom tab
-                    $('.convly-add-tab').on('click', function (e) {
-                        $('#convly-custom-tab-modal').show();
-                    });
-
+                    if (showSkeleton) {
+                        renderFullTable(response.data);
+                    } else {
+                        renderPagesList(response.data);
+                    }
                 } else {
-                    $table_section.html(`<tr><td colspan="7">${response.data}</td></tr>`);
+                    showError(response.data || 'Failed to load data');
                 }
             },
-            error: function () {
-                $table_section.html(`<tr><td colspan="7">${convly_ajax.i18n.error}</td></tr>`);
+            error: function() {
+                showError(convly_ajax.i18n.error);
             }
         });
     }
 
-    // Render pages list
+    function renderFullTable(data) {
+        const $table_section = $('#table-section');
+
+        $table_section.html(`
+        <div class="flex items-center justify-between">
+            <h5 class="text-3xl font-bold">All Pages</h5>
+            <div class="text-base font-semibold">
+                <button id="convly-export-pdf" class="px-5 py-2.5 border border-black/20 rounded-xl mr-4 cursor-pointer convly-export-btn">Export Report</button>
+                <button id="convly-sync-pages" class="px-5 py-2.5 border border-black/20 rounded-xl cursor-pointer convly-sync-btn">
+                <span class="dashicons dashicons-update convly-spin" style="vertical-align: middle;"></span> Sync Pages</button>
+            </div>
+        </div>
+        
+        <div id="tabs" class="flex gap-x-3 mt-15 border-b border-gray3 text-base font-semibold">
+            <button class="convly-tab tab-btn active-tab" data-tab="pages">Pages</button>
+            <button class="convly-tab tab-btn" data-tab="products">Products</button>
+            <button class="convly-tab tab-btn" data-tab="posts">Posts</button>
+            <div class="convly-custom-tabs"></div>
+            <button class="convly-add-tab tab-btn">+</button>
+        </div>
+
+        <!-- Filters -->
+                <div class="flex items-center gap-10 mt-7">
+
+        <div class="convly-search-container">
+            <input type="text" id="page-search-input" placeholder="Search Page Name ..." class="convly_input" />
+            <div class="convly-search-spinner">
+                <div class="convly-spinner-circle"></div>
+            </div>
+        </div>
+
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-500 font-medium text-sm">Date Range:</span>
+                        <select id="convly-date-filter"
+                            class="convly_slect">
+                            <option value="all">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="yesterday">Yesterday</option>
+                            <option value="7_days">Last 7 Days</option>
+                            <option value="30_days">Last 30 Days</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
+                    <div class="convly-custom-date-range" style="display:none;">
+                        <input type="date" id="convly-date-from"/>
+                        <span>To</span>
+                        <input type="date" id="convly-date-to"/>
+                    </div>
+                    </div>
+
+                    <div class="convly-filter-group flex items-center space-x-2">
+                        <span class="text-gray-500 font-medium text-sm">Sort By:</span>
+                        <select id="convly-sort-by" class="convly_slect">
+                            <option value="views_desc">Views (High to Low)</option>
+                            <option value="conversion_rate_desc">Conversion Rate (High to Low)</option>
+                            <option value="clicks_desc">Clicks (High to Low)</option>
+                            <option value="name_asc">Name (A-Z)</option>
+                            <option value="name_desc">Name (Z-A)</option>
+                        </select>
+                    </div>
+                </div>
+       
+        <table class="w-full table-auto divide-y divide-gray-200 mt-8">
+            <thead class="text-sm text-left">
+                <tr class="*:font-medium *:py-4 text-gray-500">
+                    <th>STATUS</th>
+                    <th class="w-1/3">PAGE NAME</th>
+                    <th>UNIQUE VISITORS</th>
+                    <th>TOTAL VIEWS</th>
+                    <th>BUTTON CLICKS</th>
+                    <th>CONVERSION RATE</th>
+                    <th>ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody id="convly_page_list" class="text-base font-semibold divide-y divide-gray-200">
+            </tbody>
+        </table>
+        
+        <div id="convly-pagination" class="mt-8 flex justify-center items-center space-x-4">
+        </div>
+    `);
+
+        $('#convly-date-filter').val(data.date_filter || 'all');
+        $('#convly-sort-by').val(data.sort_by || 'views_desc');
+
+        renderPagesList(data);
+
+        bindTableEvents();
+    }
+
+    function bindTableEvents() {
+        // Add custom tab
+        $('.convly-add-tab').on('click', function (e) {
+            e.preventDefault();
+            $('#convly-custom-tab-modal').show();
+        });
+
+        // Custom tab form submission
+        $('#convly-custom-tab-form').on('submit', function (e) {
+            e.preventDefault();
+            addCustomTab();
+        });
+
+        $('#convly-date-filter').change(function() {
+            if ($(this).val() === 'custom') {
+                $('.convly-custom-date-range').show();
+            } else {
+                $('.convly-custom-date-range').hide();
+                currentPage = 1;
+                loadPagesList(false);
+            }
+        });
+
+        // Custom date range
+        $('#convly-date-from, #convly-date-to').on('change', function () {
+            if ($('#convly-date-from').val() && $('#convly-date-to').val()) {
+                loadPagesList(false);
+            }
+        });
+
+        $('#convly-sort-by').change(function() {
+            currentPage = 1;
+            loadPagesList(false);
+        });
+
+        // Search input
+        const searchInput = $('#page-search-input');
+        if (searchInput.length > 0) {
+            searchInput.off('input').on('input', debounce(function(e) {
+
+                const searchSpinner = $('.convly-search-spinner')
+
+                const searchTerm = searchInput.val().trim();
+
+                if (searchTerm.length === 0 || searchTerm.length >= 3) {
+                    currentPage = 1;
+                    searchSpinner.addClass('searching');
+                    loadPagesList(false);
+                }
+
+                setTimeout(() => {
+                    searchSpinner.removeClass('searching');
+                }, 600);
+            }, 500));
+        }
+
+        // Export PDF
+        $('#convly-export-pdf').on('click', function() {
+            $('#convly-pdf-export-modal').show();
+        });
+
+        // Handle PDF date range selection
+        $('#convly-pdf-date-range').on('change', function() {
+            if ($(this).val() === 'custom') {
+                $('#convly-pdf-custom-dates').show();
+            } else {
+                $('#convly-pdf-custom-dates').hide();
+            }
+        });
+
+        // Handle PDF export form submission
+        $('#convly-pdf-export-form').on('submit', function(e) {
+            e.preventDefault();
+
+            const dateRange = $('#convly-pdf-date-range').val();
+            const tab = $('.convly-tab.active').data('tab') || 'pages';
+
+            const form = $('<form>', {
+                method: 'POST',
+                action: convly_ajax.ajax_url
+            });
+
+            const params = {
+                action: 'convly_generate_pdf_report',
+                nonce: convly_ajax.nonce,
+                date_filter: dateRange,
+                tab: tab
+            };
+
+            if (dateRange === 'custom') {
+                params.date_from = $('#convly-pdf-date-from').val();
+                params.date_to = $('#convly-pdf-date-to').val();
+            }
+
+            $.each(params, function(key, value) {
+                $('<input>').attr({
+                    type: 'hidden',
+                    name: key,
+                    value: value
+                }).appendTo(form);
+            });
+
+            $('#convly-pdf-export-modal').hide();
+            form.appendTo('body').submit().remove();
+        });
+
+        // Sync pages with WordPress
+        $('#convly-sync-pages').on('click', function() {
+            const $button = $(this);
+            if (!$button.data('original')) {
+                $button.data('original', $button.html());
+            }
+            // Show loading state
+            $button.prop('disabled', true);
+            $button.html('<span class="dashicons dashicons-update convly-spin" style="vertical-align: middle;"></span> Syncing...');
+
+            $.ajax({
+                url: convly_ajax.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'convly_sync_pages',
+                    nonce: convly_ajax.nonce
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Show success message
+                        alert(response.data.message);
+                        // Reload pages list
+                        loadPagesList(false);
+                    } else {
+                        alert('Error: ' + response.data);
+                    }
+                },
+                error: function() {
+                    alert('Failed to sync pages');
+                },
+                complete: function() {
+                    // Restore button
+                    $button.prop('disabled', false);
+                    $button.html($button.data('original'));
+                }
+            });
+        });
+
+        // Tab click handling
+        function setupTabClickHandling() {
+            $(document).off('click', '.convly-tab').on('click', '.convly-tab', function(e) {
+                e.preventDefault();
+
+                $('.convly-tab').removeClass('active-tab');
+                $(this).addClass('active-tab');
+
+                const tabSlug = $(this).data('tab');
+                currentTab = tabSlug;
+                currentPage = 1;
+
+                loadPagesList(false);
+            });
+        }
+
+        // Initialize all tab functionality
+        function initCustomTabs() {
+            loadCustomTabs();
+            setupTabDeletion();
+            setupTabClickHandling();
+        }
+
+        // On document ready
+        $(document).ready(function() {
+            initCustomTabs();
+
+            // Add event listener for tab submission
+            $('#convly-tab-submit').on('click', function(e) {
+                e.preventDefault();
+                addCustomTab();
+            });
+
+            // Enter key support in input
+            $('#convly-tab-name').on('keypress', function(e) {
+                if (e.which === 13) { // Enter key
+                    e.preventDefault();
+                    addCustomTab();
+                }
+            });
+        });
+    }
+
     function renderPagesList(data) {
         const $tbody = $('#convly_page_list');
         $tbody.empty();
 
-        if (data.items.length === 0) {
-            $tbody.html('<tr><td colspan="7">No pages found</td></tr>');
+        if (!data.items || data.items.length === 0) {
+            $tbody.html('<tr><td colspan="7" class="no_page text-gray-500">No pages found!</td></tr>');
             return;
         }
 
-        data.items.forEach(function (page) {
+        data.items.forEach(function(page) {
             const conversionRate = page.unique_visitors > 0 ?
                 ((page.total_clicks / page.unique_visitors) * 100).toFixed(1) : 0;
 
@@ -544,47 +673,53 @@
                 conversionRate >= 5 ? 'medium' : 'low';
 
             const row = `
-                        <tr class="*:py-6">
-                            <td class="column-status">
-                                <label class="convly-status-toggle relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" class="sr-only peer" value="" ${page.is_active == 1 ? 'checked' : ''} data-page-id="${page.page_id}"/>
-                                    <span
-                                        class="group peer bg-white rounded-full duration-300 w-13 h-6 ring-2 ring-red-500 after:duration-300 after:bg-red-500 peer-checked:after:bg-green-500 peer-checked:ring-green-500 after:rounded-full after:absolute after:h-4 after:w-4 after:top-1 after:left-1 after:flex after:justify-center after:items-center peer-checked:after:translate-x-7 peer-hover:after:scale-95">
-                                    </span>
-                                </label>
-                            </td>
-                            <td class="column-name">
-                            <a href="${page.page_url}" target="_blank">${escapeHtml(page.page_title)}</a>
-                            </td>
-                            <td class="column-visitors">${page.unique_visitors}</td>
-                            <td class="column-views">${page.total_views}</td>
-                            <td class="column-clicks">
-                                ${page.has_buttons == 1 ?
-                                page.total_clicks : `
-                                <button class="cursor-pointer px-3 py-2.5 border border-gray4 rounded-10px convly-add-button">Add Button</button>
-                                `}
-                            </td>
-                            <td class="column-rate">
-                                <span class="text-lg font-semibold text-green-600 bg-green-100 rounded-3xl px-4 py-1 ${conversionClass}">
-                                ${conversionRate}%    
-                                </span>
-                            </td>
-                            <td class="column-actions">
-                                <a href="${getDetailsUrl(page.page_id)}" class="convly_badge">
-                                    ${convly_ajax.i18n.details}
-                                </a>
-                            </td>
-                        </tr>                        
-`;
+            <tr class="*:py-6">
+                <td class="column-status">
+                    <label class="convly-status-toggle relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" class="sr-only peer" ${page.is_active == 1 ? 'checked' : ''} 
+                               data-page-id="${page.page_id}" onchange="togglePageStatus(this)"/>
+                        <span class="group peer bg-white rounded-full duration-300 w-13 h-6 ring-2 ring-red-500 after:duration-300 after:bg-red-500 peer-checked:after:bg-green-500 peer-checked:ring-green-500 after:rounded-full after:absolute after:h-4 after:w-4 after:top-1 after:left-1 peer-checked:after:translate-x-7">
+                        </span>
+                    </label>
+                </td>
+                <td class="column-name">
+                    <a href="${page.page_url}" target="_blank">${escapeHtml(page.page_title)}</a>
+                </td>
+                <td class="column-visitors">${page.unique_visitors}</td>
+                <td class="column-views">${page.total_views}</td>
+                <td class="column-clicks">
+                    ${page.has_buttons == 1 ?
+                page.total_clicks :
+                `<button class="cursor-pointer px-3 py-2.5 border border-gray4 rounded-10px convly-add-button" data-page-id="${page.page_id}">Add Button</button>`
+            }
+                </td>
+                <td class="column-rate">
+                    <span class="text-lg font-semibold text-green-600 bg-green-100 rounded-3xl px-4 py-1 ${conversionClass}">
+                        ${conversionRate}%    
+                    </span>
+                </td>
+                <td class="column-actions">
+                    <a href="?page=convly-page-details&page_id=${page.page_id}" class="convly_badge">
+                        ${convly_ajax.i18n.details}
+                    </a>
+                </td>
+            </tr>
+        `;
 
             $tbody.append(row);
         });
 
-        // Bind events for new elements
-        bindPageListEvents();
-
-        // Update pagination
         updatePagination(data.total, data.per_page, data.current_page);
+
+        bindPageListEvents();
+    }
+
+    function showError(message) {
+        if (typeof showNotification === 'function') {
+            showNotification(message, 'error');
+        } else {
+            alert('Error: ' + message);
+        }
     }
 
     // Bind events for page list items
@@ -664,7 +799,7 @@
             success: function (response) {
                 if (response.success) {
                     $('#convly-button-modal').hide();
-                    loadPagesList();
+                    loadPagesList(false);
                     showNotification('Button saved successfully', 'success');
                 } else {
                     showNotification(response.data, 'error');
@@ -678,7 +813,18 @@
 
     // Add custom tab
     function addCustomTab() {
-        const tabName = $('#convly-tab-name').val();
+        const tabName = $('#convly-tab-name').val().trim();
+
+        // Validation
+        if (!tabName) {
+            showNotification('Please enter a tab name', 'error');
+            return;
+        }
+
+        // Show loading state
+        const $submitBtn = $('#convly-tab-submit');
+        const originalText = $submitBtn.html();
+        $submitBtn.html('<span class="spinner_tab"></span> Adding...').prop('disabled', true);
 
         $.ajax({
             url: convly_ajax.ajax_url,
@@ -688,48 +834,164 @@
                 nonce: convly_ajax.nonce,
                 tab_name: tabName
             },
-            success: function (response) {
+            success: function(response) {
                 if (response.success) {
                     $('#convly-custom-tab-modal').hide();
+                    $('#convly-tab-name').val(''); // Clear input
+
                     // Add new tab to UI
-                    const newTab = `<a href="#" class="convly-tab" data-tab="${response.data.tab_slug}">${response.data.tab_name}</a>`;
-                    $('.convly-custom-tabs').append(newTab);
+                    renderCustomTab(response.data);
                     showNotification('Custom tab added successfully', 'success');
+
+                    // Trigger click on new tab
+                    $(`.convly-tab[data-tab="${response.data.tab_slug}"]`).trigger('click');
                 } else {
-                    showNotification(response.data, 'error');
+                    showNotification(response.data || 'Failed to add tab', 'error');
                 }
+            },
+            error: function(xhr, status, error) {
+                showNotification('Network error: ' + error, 'error');
+            },
+            complete: function() {
+                // Restore button state
+                $submitBtn.html(originalText).prop('disabled', false);
             }
         });
     }
 
-    // Export PDF report
-    function exportPDFReport() {
-        const form = $('<form>', {
-            method: 'POST',
-            action: convly_ajax.ajax_url
+    // Load custom tabs
+    function loadCustomTabs() {
+        const $container = $('.convly-custom-tabs');
+        $container.addClass('loading');
+
+        $.ajax({
+            url: convly_ajax.ajax_url,
+            type: 'GET', // Changed to GET for better caching
+            data: {
+                action: 'convly_get_custom_tabs',
+                nonce: convly_ajax.nonce
+            },
+            success: function(response) {
+                if (response.success && response.data.length > 0) {
+                    renderCustomTabs(response.data);
+                } else {
+                    $container.hide(); // Hide if no tabs
+                }
+            },
+            error: function() {
+                showNotification('Failed to load custom tabs', 'error');
+            },
+            complete: function() {
+                $container.removeClass('loading');
+            }
+        });
+    }
+
+    // Render single tab
+    function renderCustomTab(tab) {
+        const tabHtml = `
+        <div class="convly-tab-item" data-tab-slug="${tab.tab_slug}">
+            <button class="tab-btn convly-tab" data-tab="${tab.tab_slug}">
+                ${escapeHtml(tab.tab_name)}
+            </button>
+            <div class="convly-tab-actions">
+                <button class="convly-manage-tab" data-tab-slug="${tab.tab_slug}" 
+                        data-tab-name="${tab.tab_name}" title="Manage">
+                    <span class="dashicons dashicons-admin-generic"></span>
+                </button>
+                <button class="convly-delete-tab" data-tab-id="${tab.id}" 
+                        data-tab-slug="${tab.tab_slug}" title="Delete">
+                    <span class="dashicons dashicons-no"></span>
+                </button>
+            </div>
+        </div>
+    `;
+
+        $('.convly-custom-tabs').append(tabHtml).show();
+    }
+
+    // Render all tabs
+    function renderCustomTabs(tabs) {
+        const $container = $('.convly-custom-tabs');
+        let tabsHtml = '';
+
+        tabs.forEach(function(tab) {
+            tabsHtml += `
+            <div class="convly-tab-item" data-tab-slug="${tab.tab_slug}">
+                <button class="tab-btn convly-tab" data-tab="${tab.tab_slug}">
+                    ${escapeHtml(tab.tab_name)}
+                </button>
+                <div class="convly-tab-actions">
+                    <button class="convly-manage-tab" data-tab-slug="${tab.tab_slug}" 
+                            data-tab-name="${tab.tab_name}" title="Manage">
+                        <span class="dashicons dashicons-admin-generic"></span>
+                    </button>
+                    <button class="convly-delete-tab" data-tab-id="${tab.id}" 
+                            data-tab-slug="${tab.tab_slug}" title="Delete">
+                        <span class="dashicons dashicons-no"></span>
+                    </button>
+                </div>
+            </div>
+        `;
         });
 
-        const params = {
-            action: 'convly_generate_pdf_report',
-            nonce: convly_ajax.nonce,
-            date_filter: $('#convly-date-filter').val(),
-            tab: currentTab
-        };
+        $container.html(tabsHtml).show();
+    }
 
-        if ($('#convly-date-filter').val() === 'custom') {
-            params.date_from = $('#convly-date-from').val();
-            params.date_to = $('#convly-date-to').val();
-        }
+    // Delete tab
+    function setupTabDeletion() {
+        $(document).off('click', '.convly-delete-tab').on('click', '.convly-delete-tab', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
 
-        $.each(params, function (key, value) {
-            $('<input>').attr({
-                type: 'hidden',
-                name: key,
-                value: value
-            }).appendTo(form);
+            const $button = $(this);
+            const tabId = $button.data('tab-id');
+            const tabSlug = $button.data('tab-slug');
+            const tabName = $button.closest('.convly-tab-item').find('.convly-tab').text();
+
+            if (confirm(`Are you sure you want to delete the tab "${tabName}"?`)) {
+                // Show loading state
+                $button.html('<span class="spinner_tab"></span>').prop('disabled', true);
+
+                $.ajax({
+                    url: convly_ajax.ajax_url,
+                    type: 'POST',
+                    data: {
+                        action: 'convly_delete_custom_tab',
+                        nonce: convly_ajax.nonce,
+                        tab_id: tabId,
+                        tab_slug: tabSlug
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Remove tab from UI
+                            $(`.convly-tab-item[data-tab-slug="${tabSlug}"]`).remove();
+
+                            // Hide container if no tabs left
+                            if ($('.convly-tab-item').length === 0) {
+                                $('.convly-custom-tabs').hide();
+                            }
+
+                            // Switch to first available tab
+                            const $firstTab = $('.convly-tab').first();
+                            if ($firstTab.length) {
+                                $firstTab.trigger('click');
+                            }
+
+                            showNotification('Tab deleted successfully', 'success');
+                        } else {
+                            showNotification(response.data || 'Failed to delete tab', 'error');
+                        }
+                    },
+                    error: function() {
+                        showNotification('Network error occurred', 'error');
+                    },
+                    complete: function() {
+                        $button.html('<span class="dashicons dashicons-no"></span>').prop('disabled', false);
+                    }
+                });
+            }
         });
-
-        form.appendTo('body').submit().remove();
     }
 
     function updatePagination(total, perPage, current) {

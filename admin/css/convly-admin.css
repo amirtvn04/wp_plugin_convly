@@ -214,28 +214,28 @@
     gap: 16px;
 }
 
-/* Export PDF and Sync Buttons */
-#convly-export-pdf,
-#convly-sync-pages {
-    background: #FFFFFF !important;
-    color: #060606 !important;
-    border: 1px solid #EFEFEF !important;
-    border-radius: 10px !important;
-    padding: 6px 20px !important;
-    font-family: 'Montserrat', sans-serif !important;
-    font-weight: 500 !important;
-    font-size: 14px !important;
-    height: auto !important;
-    line-height: 1.5 !important;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
+/*!* Export PDF and Sync Buttons *!*/
+/*#convly-export-pdf,*/
+/*#convly-sync-pages {*/
+/*    background: #FFFFFF !important;*/
+/*    color: #060606 !important;*/
+/*    border: 1px solid #EFEFEF !important;*/
+/*    border-radius: 10px !important;*/
+/*    padding: 6px 20px !important;*/
+/*    font-family: 'Montserrat', sans-serif !important;*/
+/*    font-weight: 500 !important;*/
+/*    font-size: 14px !important;*/
+/*    height: auto !important;*/
+/*    line-height: 1.5 !important;*/
+/*    cursor: pointer;*/
+/*    transition: all 0.3s ease;*/
+/*}*/
 
-#convly-export-pdf:hover,
-#convly-sync-pages:hover {
-    background: #F5F5F5 !important;
-    border-color: #E0E0E0 !important;
-}
+/*#convly-export-pdf:hover,*/
+/*#convly-sync-pages:hover {*/
+/*    background: #F5F5F5 !important;*/
+/*    border-color: #E0E0E0 !important;*/
+/*}*/
 
 /* Tabs */
 /*.convly-tab-list {*/

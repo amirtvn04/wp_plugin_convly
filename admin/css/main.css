@@ -69,6 +69,7 @@
     outline: none !important;
     transition: box-shadow 0.2s !important;
     border: none !important;
+    width: 350px !important;
 }
 
 .convly_input:focus {
@@ -100,6 +101,135 @@
 .convly_badge:hover {
     color: rgba(255, 255, 255, 0.8);
 }
+
+.no_page {
+    text-align: center;
+    padding: 25px 0 0 0;
+}
+
+.convly-custom-tabs {
+    display: flex;
+    column-gap: 12px;
+}
+
+
+
+.convly-search-container {
+    position: relative;
+    display: inline-block;
+}
+
+.convly-search-spinner {
+    position: absolute;
+    right: 22px;
+    top: 50%;
+    display: none;
+    width: 20px;
+    height: 20px;
+}
+
+.convly-search-spinner.searching {
+    display: block;
+}
+
+.convly-spinner-circle {
+    width: 100%;
+    height: 100%;
+    border: 2px solid #e5e7eb;
+    border-top: 2px solid #3b82f6;
+    border-radius: 50%;
+    animation: convly-spin 1s linear infinite;
+}
+
+@keyframes convly-spin {
+    0% { transform: translateY(-50%) rotate(0deg); }
+    100% { transform: translateY(-50%) rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+    .convly-search-container {
+        width: 100%;
+        margin-bottom: 15px;
+    }
+
+    .convly_input {
+        padding: 10px 35px 10px 12px;
+    }
+
+    .convly-search-spinner {
+        right: 10px;
+        width: 16px;
+        height: 16px;
+    }
+}
+
+.convly-export-btn:hover, .convly-sync-btn:hover, .convly-add-button:hover {
+    background-color: #f4f4f4;
+}
+
+/* Tab styles */
+.convly-tab-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    position: relative;
+}
+
+.convly-tab-actions {
+    display: flex;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    position: absolute;
+    top: -24px;
+    right: 50%;
+    transform: translateX(50%);
+}
+
+.convly-tab-item:hover .convly-tab-actions {
+    opacity: 1;
+}
+
+.convly-manage-tab,
+.convly-delete-tab {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+.convly-manage-tab:hover {
+    background: #f0f0f0;
+}
+
+.convly-delete-tab:hover {
+    background: #ffebee;
+    color: #d32f2f;
+}
+
+/* Loading states */
+.convly-custom-tabs.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.spinner_tab {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 
 
 

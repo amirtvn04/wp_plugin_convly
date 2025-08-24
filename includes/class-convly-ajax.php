@@ -438,6 +438,7 @@ class Convly_Ajax
     public function get_page_list()
     {
         $this->set_no_cache_headers();
+
         // Check permissions
         if (!current_user_can('manage_convly')) {
             wp_send_json_error('Unauthorized');
@@ -454,16 +455,25 @@ class Convly_Ajax
         $table_clicks = $wpdb->prefix . 'convly_clicks';
         $table_buttons = $wpdb->prefix . 'convly_buttons';
 
-        // Get parameters
+        // Get parameters - اضافه کردن پارامتر جستجو
         $tab = isset($_POST['tab']) ? sanitize_text_field($_POST['tab']) : 'pages';
         $page = isset($_POST['page']) ? intval($_POST['page']) : 1;
         $per_page = -1;
         $sort_by = isset($_POST['sort_by']) ? sanitize_text_field($_POST['sort_by']) : 'conversion_rate_desc';
         $date_filter = isset($_POST['date_filter']) ? sanitize_text_field($_POST['date_filter']) : 'all';
+        $search = isset($_POST['search']) ? sanitize_text_field($_POST['search']) : ''; // پارامتر جستجو
 
         // Build WHERE clause
         $where = array("p.page_type = %s");
         $where_values = array($tab);
+
+        // اضافه کردن شرط جستجو
+        if (!empty($search)) {
+            $where[] = "(p.page_title LIKE %s OR p.page_url LIKE %s)";
+            $search_term = '%' . $wpdb->esc_like($search) . '%';
+            $where_values[] = $search_term;
+            $where_values[] = $search_term;
+        }
 
         // Date filter
         if ($date_filter !== 'all') {
@@ -480,12 +490,12 @@ class Convly_Ajax
         // Build ORDER BY clause
         $order_by = $this->get_order_by_clause($sort_by);
 
-        // Get total count
+        // Get total count - با در نظر گرفتن جستجو
         $total_query = $wpdb->prepare(
             "SELECT COUNT(DISTINCT p.page_id) 
-             FROM $table_pages p
-             LEFT JOIN $table_views v ON p.page_id = v.page_id
-             WHERE $where_clause",
+         FROM $table_pages p
+         LEFT JOIN $table_views v ON p.page_id = v.page_id
+         WHERE $where_clause",
             $where_values
         );
         $total = $wpdb->get_var($total_query);
@@ -497,39 +507,48 @@ class Convly_Ajax
         $wp_posts = get_posts(array(
             'post_type' => $tab === 'products' ? 'product' : ($tab === 'posts' ? 'post' : 'page'),
             'posts_per_page' => -1,
-            'post_status' => 'publish'
+            'post_status' => 'publish',
+            's' => $search // اضافه کردن جستجو در وردپرس
         ));
 
-// Insert pages into tracking table if not exists
+        // Insert pages into tracking table if not exists
         foreach ($wp_posts as $post) {
-            $wpdb->insert(
-                $table_pages,
-                array(
-                    'page_id' => $post->ID,
-                    'page_url' => get_permalink($post->ID),
-                    'page_title' => $post->post_title,
-                    'page_type' => $tab,
-                    'is_active' => 1
-                ),
-                array('%d', '%s', '%s', '%s', '%d')
-            );
+            // بررسی وجود صفحه در دیتابیس
+            $existing_page = $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM $table_pages WHERE page_id = %d",
+                $post->ID
+            ));
+
+            if (!$existing_page) {
+                $wpdb->insert(
+                    $table_pages,
+                    array(
+                        'page_id' => $post->ID,
+                        'page_url' => get_permalink($post->ID),
+                        'page_title' => $post->post_title,
+                        'page_type' => $tab,
+                        'is_active' => 1
+                    ),
+                    array('%d', '%s', '%s', '%s', '%d')
+                );
+            }
         }
 
-// Get pages with stats
+        // Get pages with stats - با در نظر گرفتن جستجو
         $query = $wpdb->prepare(
             "SELECT 
-        p.*,
-        IFNULL(COUNT(DISTINCT v.visitor_id), 0) as unique_visitors,
-        IFNULL(COUNT(v.id), 0) as total_views,
-        IFNULL(COUNT(DISTINCT c.id), 0) as total_clicks,
-        EXISTS(SELECT 1 FROM $table_buttons WHERE page_id = p.page_id) as has_buttons
-     FROM $table_pages p
-     LEFT JOIN $table_views v ON p.page_id = v.page_id
-     LEFT JOIN $table_clicks c ON p.page_id = c.page_id
-     WHERE $where_clause
-     GROUP BY p.page_id
-     ORDER BY $order_by",
-            array_merge($where_values)
+            p.*,
+            IFNULL(COUNT(DISTINCT v.visitor_id), 0) as unique_visitors,
+            IFNULL(COUNT(v.id), 0) as total_views,
+            IFNULL(COUNT(DISTINCT c.id), 0) as total_clicks,
+            EXISTS(SELECT 1 FROM $table_buttons WHERE page_id = p.page_id) as has_buttons
+         FROM $table_pages p
+         LEFT JOIN $table_views v ON p.page_id = v.page_id
+         LEFT JOIN $table_clicks c ON p.page_id = c.page_id
+         WHERE $where_clause
+         GROUP BY p.page_id
+         ORDER BY $order_by",
+            $where_values
         );
 
         $results = $wpdb->get_results($query, ARRAY_A);
@@ -538,7 +557,10 @@ class Convly_Ajax
             'items' => $results,
             'total' => $total,
             'per_page' => $per_page,
-            'current_page' => $page
+            'current_page' => $page,
+            'search' => $search, // بازگرداندن عبارت جستجو
+            'sort_by' => $sort_by,
+            'date_filter' => $date_filter
         ));
     }
 
@@ -1923,8 +1945,7 @@ class Convly_Ajax
     /**
      * Sync pages with WordPress
      */
-    public function sync_pages()
-    {
+    public function sync_pages() {
         // Check permissions
         if (!current_user_can('manage_convly')) {
             wp_send_json_error('Unauthorized');
