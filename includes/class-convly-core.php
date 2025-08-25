@@ -112,6 +112,7 @@ class Convly_Core {
     // Admin AJAX actions
     $this->loader->add_action('wp_ajax_convly_get_stats', $plugin_ajax, 'get_stats');
     $this->loader->add_action('wp_ajax_convly_get_page_list', $plugin_ajax, 'get_page_list');
+    $this->loader->add_action('wp_ajax_convly_get_top_pages', $plugin_ajax, 'get_top_pages_list');
     $this->loader->add_action('wp_ajax_convly_toggle_page_status', $plugin_ajax, 'toggle_page_status');
     $this->loader->add_action('wp_ajax_convly_add_button', $plugin_ajax, 'add_button');
     $this->loader->add_action('wp_ajax_convly_update_button', $plugin_ajax, 'update_button');

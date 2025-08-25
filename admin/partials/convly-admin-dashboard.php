@@ -78,7 +78,7 @@ if (!defined('ABSPATH')) {
 <!--            </div>-->
 <!--        </div>-->
 <!---->
-        <!-- Pages Table -->
+<!-- Pages Table -->
 <!--        <div class="convly-table-wrapper">-->
 <!--            <table class="convly-pages-table widefat fixed striped">-->
 <!--                <thead>-->
@@ -121,7 +121,8 @@ if (!defined('ABSPATH')) {
                 <input type="text" id="convly-tab-name" name="tab_name" required/>
             </p>
             <p>
-                <button id="convly-tab-submit" type="submit" class="button button-primary"><?php _e('Add Tab', 'convly'); ?></button>
+                <button id="convly-tab-submit" type="submit"
+                        class="button button-primary"><?php _e('Add Tab', 'convly'); ?></button>
                 <button type="button" class="button convly-modal-cancel"><?php _e('Cancel', 'convly'); ?></button>
             </p>
         </form>
@@ -249,19 +250,17 @@ if (!defined('ABSPATH')) {
 </div>
 
 
-
-
-
-
-
 <div class="container text-xl convly_container">
     <!-- header -->
     <header>
         <div class="h-22.5 bg-black1 rounded-xl text-white/80 flex items-center justify-between px-6 mt-5">
             <ul id="navbar" class="convly_navbar">
-                <li><a href="<?php echo admin_url('admin.php?page=convly'); ?>" class="nav-link active_nav">Dashboard</a></li>
-                <li><a href="<?php echo admin_url('admin.php?page=convly-page-details'); ?>" class="nav-link">Details</a></li>
-                <li><a href="<?php echo admin_url('admin.php?page=convly-settings'); ?>" class="nav-link">Settings</a></li>
+                <li><a href="<?php echo admin_url('admin.php?page=convly'); ?>"
+                       class="nav-link active_nav">Dashboard</a></li>
+                <li><a href="<?php echo admin_url('admin.php?page=convly-page-details'); ?>"
+                       class="nav-link">Details</a></li>
+                <li><a href="<?php echo admin_url('admin.php?page=convly-settings'); ?>" class="nav-link">Settings</a>
+                </li>
             </ul>
             <img src="<?php echo CONVLY_PLUGIN_URL; ?>admin/images/image7.png" alt="convly">
         </div>
@@ -274,22 +273,25 @@ if (!defined('ABSPATH')) {
         <div class="w-70/100">
             <!-- numbers -->
             <div class="grid grid-cols-3 gap-x-8">
-                <div id="card1" class="convly_card convly-card bg-white rounded-xl p-7.5" data-metric="conversion_rate" >
-<!--                    <h5 class="text-gray-500 font-semibold">--><?php //_e('Conversion Rate', 'convly'); ?><!--</h5>-->
+                <div id="card1" class="convly_card convly-card bg-white rounded-xl p-7.5" data-metric="conversion_rate">
+                    <!--                    <h5 class="text-gray-500 font-semibold">-->
+                    <?php //_e('Conversion Rate', 'convly'); ?><!--</h5>-->
                     <div class="convly-metric flex justify-between items-center mt-2.5">
                         <span class="convly-metric-value text-40 font-bold"></span>
                         <span class="convly-metric-change text-lg font-semibold ${changeClass} rounded-3xl px-3.5 py-1"></span>
                     </div>
                 </div>
                 <div id="card2" class="convly_card convly-card bg-white rounded-xl p-7.5" data-metric="total_views">
-<!--                    <h5 class="text-gray-500 font-semibold">--><?php //_e('Unique Visitors', 'convly'); ?><!--</h5>-->
+                    <!--                    <h5 class="text-gray-500 font-semibold">-->
+                    <?php //_e('Unique Visitors', 'convly'); ?><!--</h5>-->
                     <div class="convly-metric flex justify-between items-center mt-2.5">
                         <span class="convly-metric-value text-40 font-bold"></span>
                         <span class="convly-metric-change text-lg font-semibold ${changeClass} rounded-3xl px-3.5 py-1"></span>
                     </div>
                 </div>
                 <div id="card3" class="convly_card convly-card bg-white rounded-xl p-7.5" data-metric="total_clicks">
-<!--                    <h5 class="text-gray-500 font-semibold">--><?php //_e('All Clicks', 'convly'); ?><!--</h5>-->
+                    <!--                    <h5 class="text-gray-500 font-semibold">-->
+                    <?php //_e('All Clicks', 'convly'); ?><!--</h5>-->
                     <div class="convly-metric flex justify-between items-center mt-2.5">
                         <span class="convly-metric-value text-40 font-bold"></span>
                         <span class="convly-metric-change text-lg font-semibold ${changeClass} rounded-3xl px-3.5 py-1"></span>
@@ -305,21 +307,8 @@ if (!defined('ABSPATH')) {
         </div>
 
 
-        <div class="w-30/100 flex flex-col">
-            <section id="top5" class="rounded-xl bg-white p-6 relative z-0">
-                <div class="skeleton h-10 w-44 mb-6"></div>
+        <div id="top5-container" class="convly-top5-section w-30/100">
 
-                <div class="flex items-center gap-x-7 mt-8 mb-9">
-                    <div class="skeleton w-25 h-7"></div>
-                    <div class="skeleton w-25 h-7"></div>
-                    <div class="skeleton w-25 h-7"></div>
-                </div>
-
-                <div class="skeleton h-50 w-full"></div>
-            </section>
-            <section class="rounded-xl bg-white p-6 mt-7.5 flex-1">
-
-            </section>
         </div>
     </div>
 
@@ -330,43 +319,6 @@ if (!defined('ABSPATH')) {
 
 
 </div>
-
-
-
-
-<script>
-    function initFilter(containerId, bgId) {
-        const container = document.getElementById(containerId);
-        const bg = document.getElementById(bgId);
-        const buttons = container.querySelectorAll(".item_filter");
-
-        function moveBackgroundTo(el) {
-            const {offsetLeft, offsetTop, offsetWidth, offsetHeight} = el;
-            bg.style.width = `${offsetWidth}px`;
-            bg.style.height = `${offsetHeight}px`;
-            bg.style.transform = `translateX(${offsetLeft}px) translateY(${offsetTop}px)`;
-        }
-
-        buttons.forEach(btn => {
-            btn.addEventListener("click", () => {
-                buttons.forEach(b => b.classList.remove("active"));
-                btn.classList.add("active");
-                moveBackgroundTo(btn);
-            });
-        });
-
-        const activeBtn = container.querySelector(".active") || buttons[0];
-        if (activeBtn) {
-            bg.classList.remove("transition-all", "duration-300");
-            moveBackgroundTo(activeBtn);
-
-            requestAnimationFrame(() => {
-                bg.classList.add("transition-all", "duration-300");
-            });
-        }
-    }
-
-</script>
 
 <script>
     const loadData = {
@@ -449,38 +401,9 @@ if (!defined('ABSPATH')) {
 
     //   ----------------------------------
 
-    function loadTop5(data) {
-        const Top5 = document.getElementById('top5');
-
-        Top5.innerHTML = `
-                    <h5 class="text-3xl font-bold">${data.title}</h5>
-
-                    <div id="active-bg-2"
-                        class="absolute top-0 left-0 h-full rounded-3xl bg-gray-100 transition-all duration-300 -z-10">
-                    </div>
-
-                    <div id="time-filter-2"
-                        class="text-base flex items-center gap-x-5 mt-6.5 font-medium text-gray-500 *:cursor-pointer">
-                        ${data.filters.map((filter, index) =>
-            `<span class="item_filter cursor-pointer ${index === 0 ? 'active' : ''}">${filter}</span>`
-        ).join('')}
-                    </div>
-
-                    <div class="rounded-xl bg-gray1 mt-6 p-7 text-base font-semibold convly_top5">
-                        ${data.pages.map((page) => `
-                        <h5>${page}</h5>
-                        `).join('')}
-                    </div>
-            `;
-
-        initFilter("time-filter-2", "active-bg-2");
-
-        Top5.classList.add('fade-in');
-    }
-
     //   ----------------------------------
 
-    setTimeout(() => loadTop5(loadData.top5()), 2500);
+    // setTimeout(() => loadTop5(loadData.top5()), 2500);
 
 
 </script>
@@ -499,13 +422,13 @@ if (!defined('ABSPATH')) {
 </script>
 
 <script type="text/javascript">
-    jQuery(document).ready(function($) {
+    jQuery(document).ready(function ($) {
 
 
         // Add manage button for custom tabs
 
 // Manage tab items
-        $(document).on('click', '.convly-manage-tab', function(e) {
+        $(document).on('click', '.convly-manage-tab', function (e) {
             e.preventDefault();
             e.stopPropagation();
 
@@ -532,10 +455,10 @@ if (!defined('ABSPATH')) {
                     nonce: convly_ajax.nonce,
                     item_type: type
                 },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         var options = '';
-                        response.data.forEach(function(item) {
+                        response.data.forEach(function (item) {
                             options += '<option value="' + item.ID + '">' + item.post_title + '</option>';
                         });
                         $('#convly-available-items').html(options);
@@ -554,10 +477,10 @@ if (!defined('ABSPATH')) {
                     nonce: convly_ajax.nonce,
                     tab_slug: tabSlug
                 },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         var html = '';
-                        response.data.forEach(function(item) {
+                        response.data.forEach(function (item) {
                             html += '<tr>';
                             html += '<td>' + item.page_title + '</td>';
                             html += '<td>' + item.page_type + '</td>';
@@ -571,12 +494,12 @@ if (!defined('ABSPATH')) {
         }
 
 // Change item type
-        $('#convly-item-type').on('change', function() {
+        $('#convly-item-type').on('change', function () {
             loadAvailableItems($(this).val());
         });
 
 // Add items to tab
-        $('#convly-add-to-tab').on('click', function() {
+        $('#convly-add-to-tab').on('click', function () {
             var selectedItems = $('#convly-available-items').val();
             var tabSlug = $('#convly-manage-tab-modal').data('tab-slug');
 
@@ -594,7 +517,7 @@ if (!defined('ABSPATH')) {
                     tab_slug: tabSlug,
                     item_ids: selectedItems
                 },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         loadTabItems(tabSlug);
                         loadPages(); // Reload main list
@@ -604,7 +527,7 @@ if (!defined('ABSPATH')) {
         });
 
 // Remove item from tab
-        $(document).on('click', '.convly-remove-from-tab', function() {
+        $(document).on('click', '.convly-remove-from-tab', function () {
             if (!confirm('Remove this item from the custom tab? It will return to its original tab.')) {
                 return;
             }
@@ -620,7 +543,7 @@ if (!defined('ABSPATH')) {
                     nonce: convly_ajax.nonce,
                     page_id: pageId
                 },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         // Show success message
                         if (response.data.message) {
@@ -641,12 +564,12 @@ if (!defined('ABSPATH')) {
 
         // Export PDF
         // Export PDF - نمایش modal به جای export مستقیم
-        $('#convly-export-pdf').on('click', function() {
+        $('#convly-export-pdf').on('click', function () {
             $('#convly-pdf-export-modal').show();
         });
 
 // Handle PDF date range selection
-        $('#convly-pdf-date-range').on('change', function() {
+        $('#convly-pdf-date-range').on('change', function () {
             if ($(this).val() === 'custom') {
                 $('#convly-pdf-custom-dates').show();
             } else {
@@ -655,7 +578,7 @@ if (!defined('ABSPATH')) {
         });
 
 // Handle PDF export form submission
-        $('#convly-pdf-export-form').on('submit', function(e) {
+        $('#convly-pdf-export-form').on('submit', function (e) {
             e.preventDefault();
 
             var dateRange = $('#convly-pdf-date-range').val();
@@ -678,7 +601,7 @@ if (!defined('ABSPATH')) {
                 params.date_to = $('#convly-pdf-date-to').val();
             }
 
-            $.each(params, function(key, value) {
+            $.each(params, function (key, value) {
                 $('<input>').attr({
                     type: 'hidden',
                     name: key,
@@ -691,7 +614,7 @@ if (!defined('ABSPATH')) {
         });
 
         // Button form submission
-        $('#convly-button-form').on('submit', function(e) {
+        $('#convly-button-form').on('submit', function (e) {
             e.preventDefault();
 
             var formData = {
@@ -708,7 +631,7 @@ if (!defined('ABSPATH')) {
                 url: convly_ajax.ajax_url,
                 type: 'POST',
                 data: formData,
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         $('#convly-button-modal').hide();
                         loadPages();
@@ -720,11 +643,11 @@ if (!defined('ABSPATH')) {
         });
 
         // Modal handlers
-        $('.convly-modal-close, .convly-modal-cancel').on('click', function() {
+        $('.convly-modal-close, .convly-modal-cancel').on('click', function () {
             $('.convly-modal').hide();
         });
 
-        $('.convly-modal').on('click', function(e) {
+        $('.convly-modal').on('click', function (e) {
             if (e.target === this) {
                 $(this).hide();
             }

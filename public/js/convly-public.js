@@ -22,7 +22,7 @@
 				
             }
 			// Track scroll depth
-this.trackScrollDepth();
+            this.trackScrollDepth();
         },
 
         trackPageView: function() {
@@ -141,8 +141,8 @@ this.trackScrollDepth();
     });
 
     // Also initialize on window load as fallback
-    $(window).on('load', function() {
-        convlyTracker.init();
-    });
+    // $(window).on('load', function() {
+    //     convlyTracker.init();
+    // });
 
 })(jQuery);

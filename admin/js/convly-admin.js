@@ -17,6 +17,7 @@
         // Load initial data
         loadSummaryCards();
         loadMainChart('7_days', true);
+        loadTopPages('pages', true);
         loadPagesList(true);
 
         // Event handlers
@@ -92,8 +93,8 @@
 
         const titles = {
             'conversion_rate': 'Conversion Rate',
-            'total_views': 'Unique Visitors',
-            'total_clicks': 'All Clicks',
+            'total_views': 'Total Views',
+            'total_clicks': 'Total Clicks',
         };
 
         const title = titles[metric] || metric;
@@ -117,6 +118,7 @@
                 period: period
             },
             success: function (response) {
+                $card.addClass('fade-in');
                 if (response.success) {
                     $card.removeClass("loading").html(`
                     <h5 class="text-gray-500 font-semibold">${title}</h5>
@@ -127,32 +129,35 @@
                 `);
 
                     const $change = $card.find('.convly-metric-change');
-                    if (response.data.change) {
-                        const changeText = response.data.change > 0 ? '+' + response.data.change + '%' : response.data.change + '%';
+
+                    if (response.data.change !== undefined && response.data.change !== null) {
+                        const changeText = response.data.change > 0
+                            ? '+' + response.data.change + '%'
+                            : response.data.change + '%';
+
                         $change.text(changeText)
-                            .removeClass('text-green-600 bg-green-100 text-red-600 bg-red-100')
-                            .addClass(response.data.change > 0 ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100');
+                            .removeClass('text-green-600 bg-green-100 text-red-600 bg-red-100 text-gray-600 bg-gray-100')
+                            .addClass(
+                                response.data.change > 0 ? 'text-green-600 bg-green-100' :
+                                    response.data.change < 0 ? 'text-red-600 bg-red-100' :
+                                        'text-gray-600 bg-gray-100'
+                            );
                     }
-                } else {
-                    $card.removeClass("loading").html(`
-                    <h5 class="text-gray-500 font-semibold">${title}</h5>
-                    <div class="convly-metric flex justify-between items-center mt-2.5">
-                        <span class="convly-metric-value text-40 font-bold">${response.data.value}</span>
-                        <span class="convly-metric-change text-lg font-semibold rounded-3xl px-3.5 py-1"></span>
-                    </div>                `);
                 }
             },
             error: function () {
                 $card.removeClass("loading").html(`
-                    <h5 class="text-gray-500 font-semibold">${title}</h5>
-                    <div class="convly-metric flex justify-between items-center mt-2.5">
-                        <span class="convly-metric-value text-40 font-bold">${response.data.value}</span>
-                        <span class="convly-metric-change text-lg font-semibold rounded-3xl px-3.5 py-1"></span>
-                    </div>            `);
+                <h5 class="text-gray-500 font-semibold">${title}</h5>
+                <div class="convly-metric flex justify-between items-center mt-2.5">
+                    <span class="convly-metric-value text-40 font-bold">-</span>
+                    <span class="convly-metric-change text-lg font-semibold rounded-3xl px-3.5 py-1">N/A</span>
+                </div>
+            `);
                 showNotification(convly_ajax.i18n.error, 'error');
             }
         });
     }
+
 
     // Load main chart
     function loadMainChart(period, isInitialLoad = true) {
@@ -162,6 +167,7 @@
         const originalClasses = $target.attr('class');
 
         $target.addClass("loading");
+        $target.removeClass("fade-in");
 
         if (isInitialLoad) {
             $target.html(`
@@ -190,6 +196,7 @@
             },
             success: function (response) {
                 if (response.success) {
+                    $target.addClass('fade-in');
                     $target.removeClass("loading");
 
                     if (isInitialLoad) {
@@ -218,6 +225,7 @@
 
                         renderMainChart(response.data, $('#convly-chart')[0]);
                     } else {
+                        $target.addClass('fade-in');
                         renderMainChart(response.data, $target[0]);
                     }
                 } else {
@@ -232,6 +240,7 @@
 
     function handleChartError($target, originalHtml, originalClasses) {
         $target.removeClass("loading");
+        $target.removeClass("fade-in");
         $target.attr('class', originalClasses);
         $target.html(originalHtml);
         showNotification(convly_ajax.i18n.error, 'error');
@@ -273,7 +282,7 @@
                 curve: 'smooth'
             },
             xaxis: {
-                type: 'datetime',
+                type: 'category',
                 categories: data.labels || []
             },
             tooltip: {
@@ -287,6 +296,139 @@
         window.convlyChart.render();
     }
 
+    // Load Top 5
+    function loadTopPages(tab = 'pages', showSkeleton = true) {
+        const $container = $('#top5-container');
+        const $content = $('#top5-content');
+        const $tabs = $('#top5-tabs');
+
+        $content.removeClass('fade-in');
+
+        if (showSkeleton) {
+            $container.html(`
+            <div class="rounded-xl bg-white p-6 relative" style="flex: 1">
+                <div class="skeleton h-10 w-44 mb-6"></div>
+                <div class="flex items-center gap-x-7 mt-8 mb-9">
+                    <div class="skeleton w-25 h-7"></div>
+                    <div class="skeleton w-25 h-7"></div>
+                    <div class="skeleton w-25 h-7"></div>
+                </div>
+                <div class="skeleton w-full" style="height: 90px"></div>
+                <div class="skeleton w-full" style="height: 90px; margin-top: 13px"></div>
+                <div class="skeleton w-full" style="height: 90px; margin-top: 13px"></div>
+                <div class="skeleton w-full" style="height: 90px; margin-top: 13px"></div>
+                <div class="skeleton w-full" style="height: 90px; margin-top: 13px"></div>
+            </div>
+        `);
+        } else {
+            $content.html(`
+                <div class="skeleton w-full" style="height: 90px"></div>
+                <div class="skeleton w-full" style="height: 90px; margin-top: 13px"></div>
+                <div class="skeleton w-full" style="height: 90px; margin-top: 13px"></div>
+                <div class="skeleton w-full" style="height: 90px; margin-top: 13px"></div>
+                <div class="skeleton w-full" style="height: 90px; margin-top: 13px"></div>
+`);
+        }
+
+        $.ajax({
+            url: convly_ajax.ajax_url,
+            method: 'POST',
+            data: {
+                action: 'convly_get_top_pages',
+                nonce: convly_ajax.nonce,
+                tab: tab,
+                limit: 5
+            },
+            success: function(response) {
+                if (response.success) {
+                    $container.addClass('fade-in');
+                    renderTopPages(response.data, tab);
+                } else {
+                    showError('Failed to load top pages');
+                    $content.html('<div class="no_page">No data available!</div>');
+                    $content.addClass('fade-in');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Top pages load error:', error);
+                showError('Network error occurred');
+                $content.html('<div class="no_page">Load failed!</div>');
+            }
+        });
+    }
+
+    function renderTopPages(data, tab) {
+        const $container = $('#top5-container');
+        const $list = $('.convly-top5-list');
+        const items = data.items || data.top_items || [];
+
+        $container.html(`
+        <div class="convly-top5-header">
+            <h5 class="text-3xl font-bold">Top Fives</h5>
+            
+            <div id="active-bg-2" class="absolute top-0 left-0 h-full rounded-3xl bg-gray-100 transition-all duration-300 "></div>
+            
+            <div id="time-filter-2" class="text-base flex items-center gap-x-5 mt-6.5 font-medium text-gray-500">
+                <span class="tab-button item_filter ${tab === 'pages' ? 'active' : ''}" data-tab="pages">Pages</span>
+                <span class="tab-button item_filter ${tab === 'products' ? 'active' : ''}" data-tab="products">Products</span>
+                <span class="tab-button item_filter ${tab === 'posts' ? 'active' : ''}" data-tab="posts">Posts</span>
+            </div>
+        </div>
+        
+        <div id="top5-content" class="convly-top5-content">
+            ${renderTopPagesList(items)}
+        </div>
+    `);
+
+        setupTopPagesEvents();
+        initFilter("time-filter-2", "active-bg-2");
+    }
+
+    function renderTopPagesList(items) {
+        if (!items || items.length === 0) {
+            return '<div class="no_page fade-in">No data available!</div>';
+        }
+
+        let html = '<div class="convly-top5-list fade-in">';
+
+        items.forEach((item, index) => {
+            const conversionRate = item.conversion_rate ? parseFloat(item.conversion_rate).toFixed(2) : '0.00';
+            const rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : '';
+
+            html += `
+            <div class="convly-top5-item ${rankClass}">
+                <div class="convly-rank">${index + 1}</div>
+                <div class="convly-content">
+                    <div class="convly-title">${escapeHtml(item.post_title || item.page_title || 'Untitled')}</div>
+                    <div class="convly-url">${escapeHtml(item.page_url || item.guid || '')}</div>
+                </div>
+                <div class="convly-stats">
+                    <span class="convly-rate">${conversionRate}%</span>
+                    <div class="convly-details">
+                        <span>${item.unique_visitors || 0} visits</span>
+                        <span>${item.total_clicks || 0} clicks</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        });
+
+        html += '</div>';
+        return html;
+    }
+
+    function setupTopPagesEvents() {
+        $(document).off('click', '.tab-button').on('click', '.tab-button', function(e) {
+            e.preventDefault();
+
+            const tab = $(this).data('tab');
+            if (!tab) return;
+
+            loadTopPages(tab, false); // false = فقط محتوا اسکلتون شود
+        });
+    }
+
+    // Load pages list
     function debounce(func, wait) {
         let timeout;
         return function executedFunction(...args) {
@@ -299,7 +441,6 @@
         };
     }
 
-    // Load pages list
     function loadPagesList(showSkeleton = true) {
         const $table_section = $('#table-section');
         const $tbody = $('#convly_page_list');
@@ -363,7 +504,7 @@
             url: convly_ajax.ajax_url,
             type: 'POST',
             data: requestData,
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     if (showSkeleton) {
                         renderFullTable(response.data);
@@ -374,7 +515,7 @@
                     showError(response.data || 'Failed to load data');
                 }
             },
-            error: function() {
+            error: function () {
                 showError(convly_ajax.i18n.error);
             }
         });
@@ -382,6 +523,7 @@
 
     function renderFullTable(data) {
         const $table_section = $('#table-section');
+        $table_section.addClass('fade-in');
 
         $table_section.html(`
         <div class="flex items-center justify-between">
@@ -482,7 +624,7 @@
             addCustomTab();
         });
 
-        $('#convly-date-filter').change(function() {
+        $('#convly-date-filter').change(function () {
             if ($(this).val() === 'custom') {
                 $('.convly-custom-date-range').show();
             } else {
@@ -499,7 +641,7 @@
             }
         });
 
-        $('#convly-sort-by').change(function() {
+        $('#convly-sort-by').change(function () {
             currentPage = 1;
             loadPagesList(false);
         });
@@ -507,7 +649,7 @@
         // Search input
         const searchInput = $('#page-search-input');
         if (searchInput.length > 0) {
-            searchInput.off('input').on('input', debounce(function(e) {
+            searchInput.off('input').on('input', debounce(function (e) {
 
                 const searchSpinner = $('.convly-search-spinner')
 
@@ -526,12 +668,12 @@
         }
 
         // Export PDF
-        $('#convly-export-pdf').on('click', function() {
+        $('#convly-export-pdf').on('click', function () {
             $('#convly-pdf-export-modal').show();
         });
 
         // Handle PDF date range selection
-        $('#convly-pdf-date-range').on('change', function() {
+        $('#convly-pdf-date-range').on('change', function () {
             if ($(this).val() === 'custom') {
                 $('#convly-pdf-custom-dates').show();
             } else {
@@ -540,11 +682,11 @@
         });
 
         // Handle PDF export form submission
-        $('#convly-pdf-export-form').on('submit', function(e) {
+        $('#convly-pdf-export-form').on('submit', function (e) {
             e.preventDefault();
 
             const dateRange = $('#convly-pdf-date-range').val();
-            const tab = $('.convly-tab.active').data('tab') || 'pages';
+            const tab = $('.convly-tab.active-tab').data('tab') || 'pages';
 
             const form = $('<form>', {
                 method: 'POST',
@@ -563,7 +705,7 @@
                 params.date_to = $('#convly-pdf-date-to').val();
             }
 
-            $.each(params, function(key, value) {
+            $.each(params, function (key, value) {
                 $('<input>').attr({
                     type: 'hidden',
                     name: key,
@@ -576,7 +718,7 @@
         });
 
         // Sync pages with WordPress
-        $('#convly-sync-pages').on('click', function() {
+        $('#convly-sync-pages').on('click', function () {
             const $button = $(this);
             if (!$button.data('original')) {
                 $button.data('original', $button.html());
@@ -592,20 +734,21 @@
                     action: 'convly_sync_pages',
                     nonce: convly_ajax.nonce
                 },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         // Show success message
                         alert(response.data.message);
                         // Reload pages list
                         loadPagesList(false);
+                        loadTopPages('pages', false);
                     } else {
                         alert('Error: ' + response.data);
                     }
                 },
-                error: function() {
+                error: function () {
                     alert('Failed to sync pages');
                 },
-                complete: function() {
+                complete: function () {
                     // Restore button
                     $button.prop('disabled', false);
                     $button.html($button.data('original'));
@@ -615,7 +758,7 @@
 
         // Tab click handling
         function setupTabClickHandling() {
-            $(document).off('click', '.convly-tab').on('click', '.convly-tab', function(e) {
+            $(document).off('click', '.convly-tab').on('click', '.convly-tab', function (e) {
                 e.preventDefault();
 
                 $('.convly-tab').removeClass('active-tab');
@@ -637,17 +780,17 @@
         }
 
         // On document ready
-        $(document).ready(function() {
+        $(document).ready(function () {
             initCustomTabs();
 
             // Add event listener for tab submission
-            $('#convly-tab-submit').on('click', function(e) {
+            $('#convly-tab-submit').on('click', function (e) {
                 e.preventDefault();
                 addCustomTab();
             });
 
             // Enter key support in input
-            $('#convly-tab-name').on('keypress', function(e) {
+            $('#convly-tab-name').on('keypress', function (e) {
                 if (e.which === 13) { // Enter key
                     e.preventDefault();
                     addCustomTab();
@@ -661,11 +804,11 @@
         $tbody.empty();
 
         if (!data.items || data.items.length === 0) {
-            $tbody.html('<tr><td colspan="7" class="no_page text-gray-500">No pages found!</td></tr>');
+            $tbody.html('<tr><td colspan="7" class="no_page text-gray-500 fade-in">No pages found!</td></tr>');
             return;
         }
 
-        data.items.forEach(function(page) {
+        data.items.forEach(function (page) {
             const conversionRate = page.unique_visitors > 0 ?
                 ((page.total_clicks / page.unique_visitors) * 100).toFixed(1) : 0;
 
@@ -673,7 +816,7 @@
                 conversionRate >= 5 ? 'medium' : 'low';
 
             const row = `
-            <tr class="*:py-6">
+            <tr class="*:py-6 fade-in">
                 <td class="column-status">
                     <label class="convly-status-toggle relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" class="sr-only peer" ${page.is_active == 1 ? 'checked' : ''} 
@@ -834,7 +977,7 @@
                 nonce: convly_ajax.nonce,
                 tab_name: tabName
             },
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     $('#convly-custom-tab-modal').hide();
                     $('#convly-tab-name').val(''); // Clear input
@@ -849,10 +992,10 @@
                     showNotification(response.data || 'Failed to add tab', 'error');
                 }
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 showNotification('Network error: ' + error, 'error');
             },
-            complete: function() {
+            complete: function () {
                 // Restore button state
                 $submitBtn.html(originalText).prop('disabled', false);
             }
@@ -871,17 +1014,17 @@
                 action: 'convly_get_custom_tabs',
                 nonce: convly_ajax.nonce
             },
-            success: function(response) {
+            success: function (response) {
                 if (response.success && response.data.length > 0) {
                     renderCustomTabs(response.data);
                 } else {
                     $container.hide(); // Hide if no tabs
                 }
             },
-            error: function() {
+            error: function () {
                 showNotification('Failed to load custom tabs', 'error');
             },
-            complete: function() {
+            complete: function () {
                 $container.removeClass('loading');
             }
         });
@@ -915,7 +1058,7 @@
         const $container = $('.convly-custom-tabs');
         let tabsHtml = '';
 
-        tabs.forEach(function(tab) {
+        tabs.forEach(function (tab) {
             tabsHtml += `
             <div class="convly-tab-item" data-tab-slug="${tab.tab_slug}">
                 <button class="tab-btn convly-tab" data-tab="${tab.tab_slug}">
@@ -940,7 +1083,7 @@
 
     // Delete tab
     function setupTabDeletion() {
-        $(document).off('click', '.convly-delete-tab').on('click', '.convly-delete-tab', function(e) {
+        $(document).off('click', '.convly-delete-tab').on('click', '.convly-delete-tab', function (e) {
             e.stopPropagation();
             e.preventDefault();
 
@@ -962,7 +1105,7 @@
                         tab_id: tabId,
                         tab_slug: tabSlug
                     },
-                    success: function(response) {
+                    success: function (response) {
                         if (response.success) {
                             // Remove tab from UI
                             $(`.convly-tab-item[data-tab-slug="${tabSlug}"]`).remove();
@@ -983,15 +1126,47 @@
                             showNotification(response.data || 'Failed to delete tab', 'error');
                         }
                     },
-                    error: function() {
+                    error: function () {
                         showNotification('Network error occurred', 'error');
                     },
-                    complete: function() {
+                    complete: function () {
                         $button.html('<span class="dashicons dashicons-no"></span>').prop('disabled', false);
                     }
                 });
             }
         });
+    }
+
+    // BG tab update
+    function initFilter(containerId, bgId) {
+        const container = document.getElementById(containerId);
+        const bg = document.getElementById(bgId);
+        const buttons = container.querySelectorAll(".item_filter");
+
+        function moveBackgroundTo(el) {
+            const {offsetLeft, offsetTop, offsetWidth, offsetHeight} = el;
+            bg.style.width = `${offsetWidth}px`;
+            bg.style.height = `${offsetHeight}px`;
+            bg.style.transform = `translateX(${offsetLeft}px) translateY(${offsetTop}px)`;
+        }
+
+        buttons.forEach(btn => {
+            btn.addEventListener("click", () => {
+                buttons.forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                moveBackgroundTo(btn);
+            });
+        });
+
+        const activeBtn = container.querySelector(".active") || buttons[0];
+        if (activeBtn) {
+            bg.classList.remove("transition-all", "duration-300");
+            moveBackgroundTo(activeBtn);
+
+            requestAnimationFrame(() => {
+                bg.classList.add("transition-all", "duration-300");
+            });
+        }
     }
 
     function updatePagination(total, perPage, current) {
@@ -1034,7 +1209,7 @@
         return text.replace(/[&<>"']/g, m => map[m]);
     }
 
-// Helper function to prevent caching
+    // Helper function to prevent caching
     function getNoCacheData(data) {
         data._nocache = Date.now();
         return data;

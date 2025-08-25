@@ -285,6 +285,8 @@ class Convly_Ajax
         $change = 0;
         if ($previous_value > 0 && $metric !== 'conversion_rate') {
             $change = round((($current_value - $previous_value) / $previous_value) * 100, 1);
+        } elseif ($previous_value == 0 && $metric !== 'conversion_rate') {
+            $change = $current_value;
         } elseif ($metric === 'conversion_rate') {
             $current_num = floatval($current_value);
             $change = round($current_num - $previous_value, 1);
@@ -513,7 +515,6 @@ class Convly_Ajax
 
         // Insert pages into tracking table if not exists
         foreach ($wp_posts as $post) {
-            // بررسی وجود صفحه در دیتابیس
             $existing_page = $wpdb->get_var($wpdb->prepare(
                 "SELECT COUNT(*) FROM $table_pages WHERE page_id = %d",
                 $post->ID
@@ -563,6 +564,65 @@ class Convly_Ajax
             'date_filter' => $date_filter
         ));
     }
+
+
+    /**
+     * Get Top pages
+     */
+    public function get_top_pages_list()
+    {
+        $this->set_no_cache_headers();
+
+        // Check permissions
+        if (!current_user_can('manage_convly')) {
+            wp_send_json_error('Unauthorized');
+        }
+
+        // Verify nonce
+        if (!check_ajax_referer('convly_ajax_nonce', 'nonce', false)) {
+            wp_send_json_error('Invalid nonce');
+        }
+
+        global $wpdb;
+        $table_pages   = $wpdb->prefix . 'convly_pages';
+        $table_views   = $wpdb->prefix . 'convly_views';
+        $table_clicks  = $wpdb->prefix . 'convly_clicks';
+        $table_buttons = $wpdb->prefix . 'convly_buttons';
+
+        // دریافت تب (pages یا posts یا products)
+        $tab = isset($_POST['tab']) ? sanitize_text_field($_POST['tab']) : 'pages';
+
+        $where        = array("p.page_type = %s");
+        $where_values = array($tab);
+
+        $query = $wpdb->prepare(
+            "SELECT 
+            p.*,
+            IFNULL(COUNT(DISTINCT v.visitor_id), 0) as unique_visitors,
+            IFNULL(COUNT(v.id), 0) as total_views,
+            IFNULL(COUNT(DISTINCT c.id), 0) as total_clicks,
+            (IFNULL(COUNT(DISTINCT c.id), 0) / NULLIF(COUNT(v.id), 0)) * 100 as conversion_rate,
+            EXISTS(SELECT 1 FROM $table_buttons WHERE page_id = p.page_id) as has_buttons
+         FROM $table_pages p
+         LEFT JOIN $table_views v ON p.page_id = v.page_id
+         LEFT JOIN $table_clicks c ON p.page_id = c.page_id
+         WHERE " . implode(' AND ', $where) . "
+         GROUP BY p.page_id
+         ORDER BY conversion_rate DESC
+         LIMIT 5",
+            $where_values
+        );
+
+        $results = $wpdb->get_results($query, ARRAY_A);
+
+        wp_send_json_success(array(
+            'items' => $results,
+            'tab'   => $tab
+        ));
+    }
+
+
+
 
     /**
      * Get date range for filter
