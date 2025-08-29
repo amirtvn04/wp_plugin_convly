@@ -434,6 +434,44 @@ class Convly_Ajax
         );
     }
 
+
+    /**
+     * Insert data
+     */
+    private function sync_pages_with_wp($tab, $search = '') {
+        global $wpdb;
+        $table_pages = $wpdb->prefix . 'convly_pages';
+
+        $wp_posts = get_posts(array(
+            'post_type' => $tab === 'products' ? 'product' : ($tab === 'posts' ? 'post' : 'page'),
+            'posts_per_page' => -1,
+            'post_status' => 'publish',
+            's' => $search
+        ));
+
+        foreach ($wp_posts as $post) {
+            $existing_page = $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM $table_pages WHERE page_id = %d",
+                $post->ID
+            ));
+
+            if (!$existing_page) {
+                $wpdb->insert(
+                    $table_pages,
+                    array(
+                        'page_id'    => $post->ID,
+                        'page_url'   => get_permalink($post->ID),
+                        'page_title' => $post->post_title,
+                        'page_type'  => $tab,
+                        'is_active'  => 1
+                    ),
+                    array('%d', '%s', '%s', '%s', '%d')
+                );
+            }
+        }
+    }
+
+
     /**
      * Get pages list
      */
@@ -460,14 +498,23 @@ class Convly_Ajax
         // Get parameters - اضافه کردن پارامتر جستجو
         $tab = isset($_POST['tab']) ? sanitize_text_field($_POST['tab']) : 'pages';
         $page = isset($_POST['page']) ? intval($_POST['page']) : 1;
-        $per_page = -1;
+        $per_page = isset($_POST['per_page']) ? intval($_POST['per_page']) : 10;
+        $offset = ($page - 1) * $per_page;
         $sort_by = isset($_POST['sort_by']) ? sanitize_text_field($_POST['sort_by']) : 'conversion_rate_desc';
         $date_filter = isset($_POST['date_filter']) ? sanitize_text_field($_POST['date_filter']) : 'all';
         $search = isset($_POST['search']) ? sanitize_text_field($_POST['search']) : ''; // پارامتر جستجو
 
         // Build WHERE clause
-        $where = array("p.page_type = %s");
-        $where_values = array($tab);
+        $where = [];
+        $where_values = [];
+
+        if (in_array($tab, ['pages', 'products', 'posts'])) {
+            $where[] = "p.page_type = %s";
+            $where_values[] = $tab;
+        } else {
+            $where[] = "p.custom_tab = %s";
+            $where_values[] = $tab;
+        }
 
         // اضافه کردن شرط جستجو
         if (!empty($search)) {
@@ -502,54 +549,24 @@ class Convly_Ajax
         );
         $total = $wpdb->get_var($total_query);
 
-        // Calculate offset
-        $offset = ($page - 1) * $per_page;
-
-        // Get all WordPress pages/posts first
-        $wp_posts = get_posts(array(
-            'post_type' => $tab === 'products' ? 'product' : ($tab === 'posts' ? 'post' : 'page'),
-            'posts_per_page' => -1,
-            'post_status' => 'publish',
-            's' => $search // اضافه کردن جستجو در وردپرس
-        ));
-
-        // Insert pages into tracking table if not exists
-        foreach ($wp_posts as $post) {
-            $existing_page = $wpdb->get_var($wpdb->prepare(
-                "SELECT COUNT(*) FROM $table_pages WHERE page_id = %d",
-                $post->ID
-            ));
-
-            if (!$existing_page) {
-                $wpdb->insert(
-                    $table_pages,
-                    array(
-                        'page_id' => $post->ID,
-                        'page_url' => get_permalink($post->ID),
-                        'page_title' => $post->post_title,
-                        'page_type' => $tab,
-                        'is_active' => 1
-                    ),
-                    array('%d', '%s', '%s', '%s', '%d')
-                );
-            }
-        }
+        $this->sync_pages_with_wp($tab, $search);
 
         // Get pages with stats - با در نظر گرفتن جستجو
         $query = $wpdb->prepare(
             "SELECT 
-            p.*,
-            IFNULL(COUNT(DISTINCT v.visitor_id), 0) as unique_visitors,
-            IFNULL(COUNT(v.id), 0) as total_views,
-            IFNULL(COUNT(DISTINCT c.id), 0) as total_clicks,
-            EXISTS(SELECT 1 FROM $table_buttons WHERE page_id = p.page_id) as has_buttons
-         FROM $table_pages p
-         LEFT JOIN $table_views v ON p.page_id = v.page_id
-         LEFT JOIN $table_clicks c ON p.page_id = c.page_id
-         WHERE $where_clause
-         GROUP BY p.page_id
-         ORDER BY $order_by",
-            $where_values
+        p.*,
+        IFNULL(COUNT(DISTINCT v.visitor_id), 0) as unique_visitors,
+        IFNULL(COUNT(v.id), 0) as total_views,
+        IFNULL(COUNT(DISTINCT c.id), 0) as total_clicks,
+        EXISTS(SELECT 1 FROM $table_buttons WHERE page_id = p.page_id) as has_buttons
+        FROM $table_pages p
+        LEFT JOIN $table_views v ON p.page_id = v.page_id
+        LEFT JOIN $table_clicks c ON p.page_id = c.page_id
+        WHERE $where_clause
+        GROUP BY p.page_id
+        ORDER BY $order_by
+        LIMIT %d OFFSET %d",
+            array_merge($where_values, [$per_page, $offset])
         );
 
         $results = $wpdb->get_results($query, ARRAY_A);
@@ -559,10 +576,12 @@ class Convly_Ajax
             'total' => $total,
             'per_page' => $per_page,
             'current_page' => $page,
-            'search' => $search, // بازگرداندن عبارت جستجو
+            'total_pages' => ceil($total / $per_page),
+            'search' => $search,
             'sort_by' => $sort_by,
             'date_filter' => $date_filter
         ));
+
     }
 
 
@@ -592,6 +611,8 @@ class Convly_Ajax
         // دریافت تب (pages یا posts یا products)
         $tab = isset($_POST['tab']) ? sanitize_text_field($_POST['tab']) : 'pages';
 
+        $this->sync_pages_with_wp($tab, '');
+
         $where        = array("p.page_type = %s");
         $where_values = array($tab);
 
@@ -601,14 +622,17 @@ class Convly_Ajax
             IFNULL(COUNT(DISTINCT v.visitor_id), 0) as unique_visitors,
             IFNULL(COUNT(v.id), 0) as total_views,
             IFNULL(COUNT(DISTINCT c.id), 0) as total_clicks,
-            (IFNULL(COUNT(DISTINCT c.id), 0) / NULLIF(COUNT(v.id), 0)) * 100 as conversion_rate,
-            EXISTS(SELECT 1 FROM $table_buttons WHERE page_id = p.page_id) as has_buttons
+            CASE 
+                WHEN COUNT(v.id) = 0 THEN 0
+                ELSE (COUNT(DISTINCT c.id) / COUNT(v.id)) * 100
+            END as conversion_rate,
+        EXISTS(SELECT 1 FROM $table_buttons WHERE page_id = p.page_id) as has_buttons
          FROM $table_pages p
          LEFT JOIN $table_views v ON p.page_id = v.page_id
          LEFT JOIN $table_clicks c ON p.page_id = c.page_id
          WHERE " . implode(' AND ', $where) . "
          GROUP BY p.page_id
-         ORDER BY conversion_rate DESC
+         ORDER BY conversion_rate DESC, total_views DESC
          LIMIT 5",
             $where_values
         );
@@ -673,7 +697,7 @@ class Convly_Ajax
             case 'clicks_desc':
                 return 'total_clicks DESC';
             case 'conversion_rate_desc':
-                return '(total_clicks / NULLIF(unique_visitors, 0)) DESC';
+                return '(COUNT(DISTINCT c.id) / NULLIF(COUNT(DISTINCT v.visitor_id), 0)) DESC';
             case 'name_asc':
                 return 'p.page_title ASC';
             case 'name_desc':
@@ -1022,32 +1046,24 @@ class Convly_Ajax
             wp_send_json_error('Invalid nonce');
         }
 
-        $item_type = isset($_POST['item_type']) ? sanitize_text_field($_POST['item_type']) : 'page';
+        $item_type = isset($_POST['item_type']) ? sanitize_text_field($_POST['item_type']) : 'pages';
 
-        // Get WordPress posts
-        $args = array(
-            'post_type' => $item_type,
-            'posts_per_page' => -1,
-            'post_status' => 'publish',
-            'orderby' => 'title',
-            'order' => 'ASC'
-        );
-
-        // Get items not already in a custom tab
+        // Get data from your custom table
         global $wpdb;
         $table_pages = $wpdb->prefix . 'convly_pages';
 
-        $assigned_ids = $wpdb->get_col(
-            "SELECT page_id FROM $table_pages WHERE custom_tab IS NOT NULL"
+        // Query to get pages not assigned to any custom tab
+        $results = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT * FROM $table_pages 
+        WHERE custom_tab IS NULL 
+        AND page_type = %s 
+        ORDER BY page_title ASC",
+                $item_type
+            )
         );
 
-        if (!empty($assigned_ids)) {
-            $args['post__not_in'] = $assigned_ids;
-        }
-
-        $posts = get_posts($args);
-
-        wp_send_json_success($posts);
+        wp_send_json_success($results);
     }
 
     /**
@@ -1109,45 +1125,26 @@ class Convly_Ajax
 
         $success = true;
         foreach ($item_ids as $item_id) {
-            $post = get_post($item_id);
-            if (!$post) continue;
 
-            // First, insert/update in tracking table
             $existing = $wpdb->get_var($wpdb->prepare(
                 "SELECT id FROM $table_pages WHERE page_id = %d",
                 $item_id
             ));
 
             if ($existing) {
-                // Update existing
                 $result = $wpdb->update(
                     $table_pages,
                     array(
                         'custom_tab' => $tab_slug,
-                        'page_type' => $tab_slug
                     ),
                     array('page_id' => $item_id),
-                    array('%s', '%s'),
+                    array('%s'),
                     array('%d')
                 );
-            } else {
-                // Insert new
-                $result = $wpdb->insert(
-                    $table_pages,
-                    array(
-                        'page_id' => $item_id,
-                        'page_url' => get_permalink($item_id),
-                        'page_title' => $post->post_title,
-                        'page_type' => $tab_slug,
-                        'custom_tab' => $tab_slug,
-                        'is_active' => 1
-                    ),
-                    array('%d', '%s', '%s', '%s', '%s', '%d')
-                );
-            }
 
-            if ($result === false) {
-                $success = false;
+                if ($result === false) {
+                    $success = false;
+                }
             }
         }
 
