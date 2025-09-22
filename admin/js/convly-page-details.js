@@ -2,7 +2,7 @@
  * Convly Page Details JavaScript
  */
 
-(function($) {
+(function ($) {
     'use strict';
 
     // Global variables
@@ -11,7 +11,7 @@
     const pageId = window.convlyPageId || 0;
 
     // Initialize
-    $(document).ready(function() {
+    $(document).ready(function () {
         if (!pageId) {
             return;
         }
@@ -28,7 +28,7 @@
     // Bind event handlers
     function bindEventHandlers() {
         // Chart period buttons
-        $('.convly-period-btn').on('click', function() {
+        $('.convly-period-btn').on('click', function () {
             $('.convly-period-btn').removeClass('active');
             $(this).addClass('active');
             const period = $(this).data('period');
@@ -36,23 +36,23 @@
         });
 
         // Add button
-        $('.convly-add-button').on('click', function() {
+        $('.convly-add-button').on('click', function () {
             openButtonModal();
         });
 
         // Button form submission
-        $('#convly-button-form').on('submit', function(e) {
+        $('#convly-button-form').on('submit', function (e) {
             e.preventDefault();
             saveButton();
         });
 
         // Modal close
-        $('.convly-modal-close, .convly-modal-cancel').on('click', function() {
+        $('.convly-modal-close, .convly-modal-cancel').on('click', function () {
             $('.convly-modal').hide();
         });
 
         // Close modal when clicking outside
-        $('.convly-modal').on('click', function(e) {
+        $('.convly-modal').on('click', function (e) {
             if (e.target === this) {
                 $(this).hide();
             }
@@ -60,30 +60,30 @@
     }
 
 // Export PDF button
-        $('#convly-export-page-pdf').on('click', function(e) {
-            e.preventDefault();
-            $('#convly-page-pdf-modal').show();
-        });
+    $('#convly-export-page-pdf').on('click', function (e) {
+        e.preventDefault();
+        $('#convly-page-pdf-modal').show();
+    });
 
-        // PDF date range selection
-        $('#convly-page-pdf-range').on('change', function() {
-            if ($(this).val() === 'custom') {
-                $('#convly-page-pdf-custom-dates').show();
-            } else {
-                $('#convly-page-pdf-custom-dates').hide();
-            }
-        });
+    // PDF date range selection
+    $('#convly-page-pdf-range').on('change', function () {
+        if ($(this).val() === 'custom') {
+            $('#convly-page-pdf-custom-dates').show();
+        } else {
+            $('#convly-page-pdf-custom-dates').hide();
+        }
+    });
 
-        // PDF export form submission
-        $('#convly-page-pdf-form').on('submit', function(e) {
-            e.preventDefault();
-            exportPagePDF();
-        });
+    // PDF export form submission
+    $('#convly-page-pdf-form').on('submit', function (e) {
+        e.preventDefault();
+        exportPagePDF();
+    });
 
     // Load page statistics
     function loadPageStats() {
         // Load each metric card
-        $('.convly-card').each(function() {
+        $('.convly-card-datails').each(function () {
             const metric = $(this).data('metric');
             loadMetricCard(metric);
         });
@@ -91,7 +91,7 @@
 
     // Load individual metric card
     function loadMetricCard(metric) {
-        const $card = $(`.convly-card[data-metric="${metric}"]`);
+        const $card = $(`.convly-card-datails[data-metric="${metric}"]`);
         const $value = $card.find('.convly-metric-value');
         const $change = $card.find('.convly-metric-change');
 
@@ -107,10 +107,11 @@
                 metric: metric,
                 period: '7_days'
             },
-            success: function(response) {
+            success: function (response) {
+                console.log(response);
                 if (response.success) {
                     $value.text(response.data.value);
-                    
+
                     if (response.data.change !== undefined) {
                         $change.text(response.data.change + '%');
                         $change.removeClass('positive negative');
@@ -124,129 +125,129 @@
                         $card.find('.convly-device-mobile').text(`Mobile: ${mobile}%`);
                         $card.find('.convly-device-desktop').text(`Desktop: ${desktop}%`);
                     }
-					
-					// Scroll depth breakdown
-if (metric === 'scroll_depth' && response.data.breakdown) {
-    const b = response.data.breakdown;
-    $card.find('.scroll-25 strong').text(b['25'] + '%');
-    $card.find('.scroll-50 strong').text(b['50'] + '%');
-    $card.find('.scroll-75 strong').text(b['75'] + '%');
-    $card.find('.scroll-100 strong').text(b['100'] + '%');
-    $card.find('.convly-scroll-progress').css('width', response.data.value);
-}
+
+                    // Scroll depth breakdown
+                    if (metric === 'scroll_depth' && response.data.breakdown) {
+                        const b = response.data.breakdown;
+                        $card.find('.scroll-25 strong').text(b['25'] + '%');
+                        $card.find('.scroll-50 strong').text(b['50'] + '%');
+                        $card.find('.scroll-75 strong').text(b['75'] + '%');
+                        $card.find('.scroll-100 strong').text(b['100'] + '%');
+                        $card.find('.convly-scroll-progress').css('width', response.data.value);
+                    }
                 }
             },
-            error: function() {
+            error: function () {
                 $value.text('-');
             }
         });
     }
 
     // Load views chart
-function loadViewsChart(period) {
-    $.ajax({
-        url: convly_ajax.ajax_url,
-        type: 'POST',
-        data: {
-            action: 'convly_get_page_chart_data',
-            nonce: convly_ajax.nonce,
-            page_id: pageId,
-            chart_type: 'all_metrics', // تغییر به all_metrics
-            period: period
-        },
-        success: function(response) {
-            if (response.success) {
-                renderViewsChart(response.data);
+    function loadViewsChart(period) {
+        $.ajax({
+            url: convly_ajax.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'convly_get_page_chart_data',
+                nonce: convly_ajax.nonce,
+                page_id: pageId,
+                chart_type: 'all_metrics', // تغییر به all_metrics
+                period: period
+            },
+            success: function (response) {
+                if (response.success) {
+                    renderViewsChart(response.data);
+                }
             }
-        }
-    });
-}
+        });
+    }
 
     // Render views chart
-function renderViewsChart(data) {
-    const canvasElement = document.getElementById('convly-views-chart');
-    if (!canvasElement) {
-        console.error('Convly: Chart canvas element not found');
-        return;
-    }
-    
-    const ctx = canvasElement.getContext('2d');
-    
-    if (viewsChart) {
-        viewsChart.destroy();
-    }
+    function renderViewsChart(data) {
+        const canvasElement = document.getElementById('convly-views-chart');
+        if (!canvasElement) {
+            console.error('Convly: Chart canvas element not found');
+            return;
+        }
 
-    viewsChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: data.labels,
-            datasets: [{
-                label: 'Page Views',
-                data: data.views,
-                borderColor: 'rgb(54, 162, 235)',
-                backgroundColor: 'rgba(54, 162, 235, 0.1)',
-                tension: 0.4,
-                fill: true,
-                yAxisID: 'y'
-            }, {
-                label: 'Unique Visitors',
-                data: data.visitors,
-                borderColor: 'rgb(75, 192, 192)',
-                backgroundColor: 'rgba(75, 192, 192, 0.1)',
-                tension: 0.4,
-                fill: true,
-                yAxisID: 'y'
-            }, {
-                label: 'Conversion Rate (%)',
-                data: data.conversion_rates,
-                borderColor: 'rgb(255, 99, 132)',
-                backgroundColor: 'rgba(255, 99, 132, 0.1)',
-                tension: 0.4,
-                fill: false,
-                yAxisID: 'y1'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {
-                mode: 'index',
-                intersect: false,
+        const ctx = canvasElement.getContext('2d');
+
+        if (viewsChart) {
+            viewsChart.destroy();
+        }
+
+        viewsChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: 'Page Views',
+                    data: data.views,
+                    borderColor: 'rgb(54, 162, 235)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    yAxisID: 'y'
+                }, {
+                    label: 'Unique Visitors',
+                    data: data.visitors,
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    yAxisID: 'y'
+                }, {
+                    label: 'Conversion Rate (%)',
+                    data: data.conversion_rates,
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                    tension: 0.4,
+                    fill: false,
+                    yAxisID: 'y1'
+                }]
             },
-            plugins: {
-                legend: {
-                    position: 'bottom'
-                }
-            },
-            scales: {
-                y: {
-                    type: 'linear',
-                    display: true,
-                    position: 'left',
-                    beginAtZero: true,
-                    ticks: {
-                        precision: 0
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom'
                     }
                 },
-                y1: {
-                    type: 'linear',
-                    display: true,
-                    position: 'right',
-                    beginAtZero: true,
-                    max: 100,
-                    grid: {
-                        drawOnChartArea: false,
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
                     },
-                    ticks: {
-                        callback: function(value) {
-                            return value + '%';
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        beginAtZero: true,
+                        max: 100,
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                        ticks: {
+                            callback: function (value) {
+                                return value + '%';
+                            }
                         }
                     }
                 }
             }
-        }
-    });
-}
+        });
+    }
 
     // Load buttons
     function loadButtons() {
@@ -258,7 +259,7 @@ function renderViewsChart(data) {
                 nonce: convly_ajax.nonce,
                 page_id: pageId
             },
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     renderButtons(response.data);
                     loadButtonCharts(response.data);
@@ -270,7 +271,7 @@ function renderViewsChart(data) {
     // Render buttons list
     function renderButtons(buttons) {
         const $list = $('#convly-buttons-list');
-        
+
         if (buttons.length === 0) {
             $list.html('<p>' + convly_ajax.i18n.no_buttons + '</p>');
             return;
@@ -285,7 +286,7 @@ function renderViewsChart(data) {
         html += '<th>' + convly_ajax.i18n.actions + '</th>';
         html += '</tr></thead><tbody>';
 
-        buttons.forEach(function(button) {
+        buttons.forEach(function (button) {
             html += '<tr>';
             html += '<td><strong>' + button.button_name + '</strong></td>';
             html += '<td><code>#' + button.button_css_id + '</code></td>';
@@ -302,13 +303,13 @@ function renderViewsChart(data) {
         $list.html(html);
 
         // Bind button actions
-        $('.convly-edit-button').on('click', function() {
+        $('.convly-edit-button').on('click', function () {
             const buttonId = $(this).data('button-id');
             const button = buttons.find(b => b.id == buttonId);
             openButtonModal(button);
         });
 
-        $('.convly-delete-button').on('click', function() {
+        $('.convly-delete-button').on('click', function () {
             if (confirm(convly_ajax.i18n.confirm_delete)) {
                 deleteButton($(this).data('button-id'));
             }
@@ -324,7 +325,7 @@ function renderViewsChart(data) {
             return;
         }
 
-        buttons.forEach(function(button) {
+        buttons.forEach(function (button) {
             // Create chart container
             const chartHtml = `
                 <div class="convly-chart-container" data-button-id="${button.id}">
@@ -341,22 +342,22 @@ function renderViewsChart(data) {
                     </div>
                 </div>
             `;
-            
+
             $container.append(chartHtml);
-            
+
             // Load chart data
             loadButtonChart(button.id, '7_days');
         });
 
         // Bind period selector events
-        $('.convly-button-period-btn').on('click', function() {
+        $('.convly-button-period-btn').on('click', function () {
             const buttonId = $(this).data('button-id');
             const period = $(this).data('period');
-            
+
             // Update active state
             $(`.convly-button-period-btn[data-button-id="${buttonId}"]`).removeClass('active');
             $(this).addClass('active');
-            
+
             // Reload chart
             loadButtonChart(buttonId, period);
         });
@@ -373,7 +374,7 @@ function renderViewsChart(data) {
                 button_id: buttonId,
                 period: period
             },
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     renderButtonChart(buttonId, response.data);
                 }
@@ -434,7 +435,7 @@ function renderViewsChart(data) {
             $('#convly-button-form')[0].reset();
             $('#convly-page-id').val(pageId);
         }
-        
+
         $('#convly-button-modal').show();
     }
 
@@ -442,7 +443,7 @@ function renderViewsChart(data) {
     function saveButton() {
         const buttonId = $('#convly-button-id').val();
         const action = buttonId ? 'convly_update_button' : 'convly_add_button';
-        
+
         const data = {
             action: action,
             nonce: convly_ajax.nonce,
@@ -457,7 +458,7 @@ function renderViewsChart(data) {
             url: convly_ajax.ajax_url,
             type: 'POST',
             data: data,
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     $('#convly-button-modal').hide();
                     loadButtons();
@@ -479,7 +480,7 @@ function renderViewsChart(data) {
                 nonce: convly_ajax.nonce,
                 button_id: buttonId
             },
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     loadButtons();
                     showNotification('Button deleted successfully', 'success');
@@ -494,40 +495,40 @@ function renderViewsChart(data) {
     function showNotification(message, type = 'info') {
         const $notice = $(`<div class="notice notice-${type} is-dismissible"><p>${message}</p></div>`);
         $('.convly-page-details').prepend($notice);
-        
-        setTimeout(function() {
-            $notice.fadeOut(function() {
+
+        setTimeout(function () {
+            $notice.fadeOut(function () {
                 $(this).remove();
             });
         }, 3000);
     }
 
 // Export page PDF
-function exportPagePDF() {
-    const dateRange = $('#convly-page-pdf-range').val();
-    
-    let url = convly_ajax.ajax_url + '?action=convly_generate_page_pdf';
-    url += '&nonce=' + convly_ajax.nonce;
-    url += '&page_id=' + pageId;
-    url += '&date_filter=' + dateRange;
-    
-    if (dateRange === 'custom') {
-        const dateFrom = $('#convly-page-pdf-date-from').val();
-        const dateTo = $('#convly-page-pdf-date-to').val();
-        
-        if (!dateFrom || !dateTo) {
-            alert('Please select both start and end dates');
-            return;
+    function exportPagePDF() {
+        const dateRange = $('#convly-page-pdf-range').val();
+
+        let url = convly_ajax.ajax_url + '?action=convly_generate_page_pdf';
+        url += '&nonce=' + convly_ajax.nonce;
+        url += '&page_id=' + pageId;
+        url += '&date_filter=' + dateRange;
+
+        if (dateRange === 'custom') {
+            const dateFrom = $('#convly-page-pdf-date-from').val();
+            const dateTo = $('#convly-page-pdf-date-to').val();
+
+            if (!dateFrom || !dateTo) {
+                alert('Please select both start and end dates');
+                return;
+            }
+
+            url += '&date_from=' + dateFrom;
+            url += '&date_to=' + dateTo;
         }
-        
-        url += '&date_from=' + dateFrom;
-        url += '&date_to=' + dateTo;
+
+        $('#convly-page-pdf-modal').hide();
+
+        // باز کردن در تب جدید
+        window.open(url, '_blank');
     }
-    
-    $('#convly-page-pdf-modal').hide();
-    
-    // باز کردن در تب جدید
-    window.open(url, '_blank');
-}
 
 })(jQuery);

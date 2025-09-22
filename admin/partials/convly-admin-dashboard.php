@@ -78,13 +78,13 @@ if (!defined('ABSPATH')) {
 
 <!-- PDF Export Date Range Modal -->
 <div id="convly-pdf-export-modal" class="convly-modal" style="display:none;">
-    <div class="convly-modal-content">
+    <div class="convly-modal-content convly_box">
         <span class="convly-modal-close">&times;</span>
-        <h2><?php _e('Export PDF Report', 'convly'); ?></h2>
+        <h2 class="convly_modal_title"><?php _e('Export PDF Report', 'convly'); ?></h2>
         <form id="convly-pdf-export-form">
-            <p>
-                <label for="convly-pdf-date-range"><?php _e('Select Date Range:', 'convly'); ?></label>
-                <select id="convly-pdf-date-range" name="date_range">
+            <p class="convly_modal_select_box">
+                <label class="convly_modal_label" for="convly-pdf-date-range" style="text-wrap: nowrap"><?php _e('Select Date Range:', 'convly'); ?></label>
+                <select class="convly_custom_select" id="convly-pdf-date-range" name="date_range">
                     <option value="all"><?php _e('All Time', 'convly'); ?></option>
                     <option value="today"><?php _e('Today', 'convly'); ?></option>
                     <option value="yesterday"><?php _e('Yesterday', 'convly'); ?></option>
@@ -98,19 +98,19 @@ if (!defined('ABSPATH')) {
             </p>
 
             <div id="convly-pdf-custom-dates" style="display:none;">
-                <p>
-                    <label for="convly-pdf-date-from"><?php _e('From:', 'convly'); ?></label>
-                    <input type="date" id="convly-pdf-date-from" name="date_from"/>
+                <p class="convly_modal_select_box">
+                    <label class="convly_modal_label" for="convly-pdf-date-from"><?php _e('From:', 'convly'); ?></label>
+                    <input class="convly-custom-date-input" type="date" id="convly-pdf-date-from" name="date_from"/>
                 </p>
-                <p>
-                    <label for="convly-pdf-date-to"><?php _e('To:', 'convly'); ?></label>
-                    <input type="date" id="convly-pdf-date-to" name="date_to"/>
+                <p class="convly_modal_select_box">
+                    <label class="convly_modal_label" for="convly-pdf-date-to"><?php _e('To:', 'convly'); ?></label>
+                    <input class="convly-custom-date-input" type="date" id="convly-pdf-date-to" name="date_to"/>
                 </p>
             </div>
 
-            <p>
-                <button type="submit" class="button button-primary"><?php _e('Export PDF', 'convly'); ?></button>
-                <button type="button" class="button convly-modal-cancel"><?php _e('Cancel', 'convly'); ?></button>
+            <p class="convly_modal_action">
+                <button type="submit" class="convly_modal_submit"><?php _e('Export PDF', 'convly'); ?></button>
+                <button type="button" class="convly_modal_cancel convly-modal-cancel"><?php _e('Cancel', 'convly'); ?></button>
             </p>
         </form>
     </div>
@@ -166,7 +166,7 @@ if (!defined('ABSPATH')) {
 </div>
 
 
-<div class="container text-xl convly_container">
+<div class="text-xl convly_container">
     <!-- header -->
     <header>
         <div class="h-22.5 bg-black1 rounded-xl text-white/80 flex items-center justify-between px-6 mt-5">
@@ -184,40 +184,25 @@ if (!defined('ABSPATH')) {
     </header>
 
     <!-- section 1 -->
-    <div class="flex mt-7.5 gap-x-7.5 items-stretch">
+    <div class="flex items-stretch" style="margin-top: 24px; column-gap: 24px">
 
         <div class="w-70/100">
             <!-- numbers -->
-            <div class="grid grid-cols-3 gap-x-8">
-                <div id="card1" class="convly_card convly-card bg-white rounded-xl p-7.5" data-metric="conversion_rate">
-                    <!--                    <h5 class="text-gray-500 font-semibold">-->
-                    <?php //_e('Conversion Rate', 'convly'); ?><!--</h5>-->
-                    <div class="convly-metric flex justify-between items-center mt-2.5">
-                        <span class="convly-metric-value text-40 font-bold"></span>
-                        <span class="convly-metric-change text-lg font-semibold ${changeClass} rounded-3xl px-3.5 py-1"></span>
-                    </div>
+            <div class="convly_grid_number" style="display: flex; gap: 24px">
+                <div id="card1" class="convly_card convly-card bg-white rounded-xl" data-metric="conversion_rate" style="flex: 1; padding: 22px">
+
                 </div>
-                <div id="card2" class="convly_card convly-card bg-white rounded-xl p-7.5" data-metric="total_views">
-                    <!--                    <h5 class="text-gray-500 font-semibold">-->
-                    <?php //_e('Unique Visitors', 'convly'); ?><!--</h5>-->
-                    <div class="convly-metric flex justify-between items-center mt-2.5">
-                        <span class="convly-metric-value text-40 font-bold"></span>
-                        <span class="convly-metric-change text-lg font-semibold ${changeClass} rounded-3xl px-3.5 py-1"></span>
-                    </div>
+                <div id="card2" class="convly_card convly-card bg-white rounded-xl" data-metric="total_views" style="flex: 1; padding: 22px">
+
                 </div>
-                <div id="card3" class="convly_card convly-card bg-white rounded-xl p-7.5" data-metric="total_clicks">
-                    <!--                    <h5 class="text-gray-500 font-semibold">-->
-                    <?php //_e('All Clicks', 'convly'); ?><!--</h5>-->
-                    <div class="convly-metric flex justify-between items-center mt-2.5">
-                        <span class="convly-metric-value text-40 font-bold"></span>
-                        <span class="convly-metric-change text-lg font-semibold ${changeClass} rounded-3xl px-3.5 py-1"></span>
-                    </div>
+                <div id="card3" class="convly_card convly-card bg-white rounded-xl" data-metric="total_clicks" style="flex: 1; padding: 22px">
+
                 </div>
 
             </div>
 
             <!-- chart -->
-            <div id="chart-section" class="rounded-xl bg-white mt-7.5 p-6 relative z-0">
+            <div id="chart-section" class="rounded-xl bg-white relative z-0" style="margin-top: 24px; padding: 22px">
 
             </div>
         </div>
@@ -229,7 +214,7 @@ if (!defined('ABSPATH')) {
     </div>
 
     <!-- section 2 Table -->
-    <div id="table-section" class="rounded-xl bg-white mt-7.5 p-6">
+    <div id="table-section" class="rounded-xl bg-white p-6" style="margin-top: 24px">
 
 
     </div>

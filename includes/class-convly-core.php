@@ -83,6 +83,8 @@ class Convly_Core {
         $this->loader->add_action('admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts');
         $this->loader->add_action('admin_menu', $plugin_admin, 'add_plugin_admin_menu');
         $this->loader->add_action('admin_init', $plugin_admin, 'register_settings');
+
+        $this->loader->add_action('admin_print_footer_scripts', $plugin_admin, 'auto_collapse_sidebar');
     }
 
     /**
@@ -108,7 +110,7 @@ class Convly_Core {
     
     $this->loader->add_action('wp_ajax_nopriv_convly_track_click', $plugin_ajax, 'track_click');
     $this->loader->add_action('wp_ajax_convly_track_click', $plugin_ajax, 'track_click');
-    
+
     // Admin AJAX actions
     $this->loader->add_action('wp_ajax_convly_get_stats', $plugin_ajax, 'get_stats');
     $this->loader->add_action('wp_ajax_convly_get_top_pages', $plugin_ajax, 'get_top_pages_list');

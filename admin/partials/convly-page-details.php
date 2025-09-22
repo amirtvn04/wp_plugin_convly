@@ -39,14 +39,14 @@ if (!$page_info) {
         <a href="<?php echo admin_url('admin.php?page=convly'); ?>" class="page-title-action">
             <?php _e('Back to Dashboard', 'convly'); ?>
         </a>
-		<a href="#" id="convly-export-page-pdf" class="page-title-action">
+        <a href="#" id="convly-export-page-pdf" class="page-title-action">
             <?php _e('Export PDF', 'convly'); ?>
         </a>
     </h1>
 
     <!-- Summary Cards -->
     <div class="convly-summary-cards">
-        <div class="convly-card" data-metric="page_views">
+        <div class="convly-card-datails" data-metric="page_views">
             <h3><?php _e('Page Views', 'convly'); ?></h3>
             <div class="convly-metric">
                 <span class="convly-metric-value">-</span>
@@ -58,7 +58,7 @@ if (!$page_info) {
             </div>
         </div>
 
-        <div class="convly-card" data-metric="unique_visitors">
+        <div class="convly-card-datails" data-metric="unique_visitors">
             <h3><?php _e('Unique Visitors', 'convly'); ?></h3>
             <div class="convly-metric">
                 <span class="convly-metric-value">-</span>
@@ -66,36 +66,34 @@ if (!$page_info) {
             </div>
         </div>
 
-        <div class="convly-card" data-metric="conversion_rate">
+        <div class="convly-card-datails" data-metric="conversion_rate">
             <h3><?php _e('Conversion Rate', 'convly'); ?></h3>
             <div class="convly-metric">
                 <span class="convly-metric-value">-</span>
                 <span class="convly-metric-change"></span>
             </div>
         </div>
-		
-		<div class="convly-card" data-metric="scroll_depth">
-    <h3><?php _e('Average Scroll Depth', 'convly'); ?></h3>
-    <div class="convly-metric">
-        <span class="convly-metric-value">-</span>
-        <span class="convly-metric-suffix">%</span>
-    </div>
-    <div class="convly-scroll-breakdown">
-        <div class="convly-scroll-bar">
-            <div class="convly-scroll-progress"></div>
-        </div>
-        <div class="convly-scroll-stats">
-            <span class="scroll-25">25%: <strong>-</strong></span>
-            <span class="scroll-50">50%: <strong>-</strong></span>
-            <span class="scroll-75">75%: <strong>-</strong></span>
-            <span class="scroll-100">100%: <strong>-</strong></span>
-        </div>
-    </div>
-</div>
-		
-    </div>
-	
 
+        <div class="convly-card-datails" data-metric="scroll_depth">
+            <h3><?php _e('Average Scroll Depth', 'convly'); ?></h3>
+            <div class="convly-metric">
+                <span class="convly-metric-value">-</span>
+                <span class="convly-metric-suffix">%</span>
+            </div>
+            <div class="convly-scroll-breakdown">
+                <div class="convly-scroll-bar">
+                    <div class="convly-scroll-progress"></div>
+                </div>
+                <div class="convly-scroll-stats">
+                    <span class="scroll-25">25%: <strong>-</strong></span>
+                    <span class="scroll-50">50%: <strong>-</strong></span>
+                    <span class="scroll-75">75%: <strong>-</strong></span>
+                    <span class="scroll-100">100%: <strong>-</strong></span>
+                </div>
+            </div>
+        </div>
+
+    </div>
 
 
     <!-- Page Views Chart -->
@@ -140,21 +138,21 @@ if (!$page_info) {
         <span class="convly-modal-close">&times;</span>
         <h2 id="convly-button-modal-title"><?php _e('Add Button', 'convly'); ?></h2>
         <form id="convly-button-form">
-            <input type="hidden" id="convly-button-id" name="button_id" />
-            <input type="hidden" id="convly-page-id" name="page_id" value="<?php echo $page_id; ?>" />
-            
+            <input type="hidden" id="convly-button-id" name="button_id"/>
+            <input type="hidden" id="convly-page-id" name="page_id" value="<?php echo $page_id; ?>"/>
+
             <p>
                 <label for="convly-button-css-id"><?php _e('Button CSS ID:', 'convly'); ?></label>
-                <input type="text" id="convly-button-css-id" name="button_css_id" required />
+                <input type="text" id="convly-button-css-id" name="button_css_id" required/>
                 <span class="description"><?php _e('Enter the CSS ID of the button (without #)', 'convly'); ?></span>
             </p>
-            
+
             <p>
                 <label for="convly-button-name"><?php _e('Button Name:', 'convly'); ?></label>
-                <input type="text" id="convly-button-name" name="button_name" required />
+                <input type="text" id="convly-button-name" name="button_name" required/>
                 <span class="description"><?php _e('A friendly name for this button', 'convly'); ?></span>
             </p>
-            
+
             <p>
                 <label for="convly-button-type"><?php _e('Type:', 'convly'); ?></label>
                 <select id="convly-button-type" name="button_type">
@@ -162,7 +160,7 @@ if (!$page_info) {
                     <option value="link"><?php _e('Link', 'convly'); ?></option>
                 </select>
             </p>
-            
+
             <p>
                 <button type="submit" class="button button-primary"><?php _e('Save Button', 'convly'); ?></button>
                 <button type="button" class="button convly-modal-cancel"><?php _e('Cancel', 'convly'); ?></button>
@@ -191,18 +189,18 @@ if (!$page_info) {
                     <option value="custom"><?php _e('Custom Range', 'convly'); ?></option>
                 </select>
             </p>
-            
+
             <div id="convly-page-pdf-custom-dates" style="display:none;">
                 <p>
                     <label for="convly-page-pdf-date-from"><?php _e('From:', 'convly'); ?></label>
-                    <input type="date" id="convly-page-pdf-date-from" name="date_from" />
+                    <input type="date" id="convly-page-pdf-date-from" name="date_from"/>
                 </p>
                 <p>
                     <label for="convly-page-pdf-date-to"><?php _e('To:', 'convly'); ?></label>
-                    <input type="date" id="convly-page-pdf-date-to" name="date_to" />
+                    <input type="date" id="convly-page-pdf-date-to" name="date_to"/>
                 </p>
             </div>
-            
+
             <p>
                 <button type="submit" class="button button-primary"><?php _e('Export PDF', 'convly'); ?></button>
                 <button type="button" class="button convly-modal-cancel"><?php _e('Cancel', 'convly'); ?></button>

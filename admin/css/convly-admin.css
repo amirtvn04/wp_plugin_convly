@@ -6,9 +6,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap');
 
 /* Hide WordPress default title */
-.wrap > h1:first-child {
-    display: none !important;
-}
+/*.wrap > h1:first-child {*/
+/*    display: none !important;*/
+/*}*/
 
 /* Background Color */
 #wpbody-content {

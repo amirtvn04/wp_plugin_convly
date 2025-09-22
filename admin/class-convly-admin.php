@@ -6,7 +6,8 @@
  * @subpackage Convly/admin
  */
 
-class Convly_Admin {
+class Convly_Admin
+{
 
     /**
      * The ID of this plugin
@@ -21,18 +22,34 @@ class Convly_Admin {
     /**
      * Initialize the class and set its properties
      */
-    public function __construct($plugin_name, $version) {
+    public function __construct($plugin_name, $version)
+    {
         $this->plugin_name = $plugin_name;
         $this->version = $version;
-		
-		    add_action('admin_head', array($this, 'add_no_cache_meta'));
+
+        add_action('admin_head', array($this, 'add_no_cache_meta'));
 
     }
+
+    public function auto_collapse_sidebar() {
+        if (isset($_GET['page']) && $_GET['page'] === 'convly') : ?>
+            <script>
+                (function($){
+                    $(document).ready(function(){
+                        $('body').addClass('folded');
+                    });
+                })(jQuery);
+            </script>
+        <?php
+        endif;
+    }
+
 
     /**
      * Register the stylesheets for the admin area
      */
-    public function enqueue_styles() {
+    public function enqueue_styles()
+    {
         // Debug: Always load on admin pages for testing
         if (strpos($_SERVER['REQUEST_URI'], 'page=convly') !== false) {
             wp_enqueue_style($this->plugin_name . "main", CONVLY_PLUGIN_URL . 'admin/css/main.css', array(), $this->version, 'all');
@@ -44,7 +61,8 @@ class Convly_Admin {
     /**
      * Register the JavaScript for the admin area
      */
-    public function enqueue_scripts() {
+    public function enqueue_scripts()
+    {
         // Debug: Check if we're on a Convly page
         if (strpos($_SERVER['REQUEST_URI'], 'page=convly') !== false) {
             // Load Chart.js
@@ -53,7 +71,7 @@ class Convly_Admin {
 
             // Load admin script
             wp_enqueue_script($this->plugin_name, CONVLY_PLUGIN_URL . 'admin/js/convly-admin.js', array('jquery', 'convly-chartjs'), time(), true);
-            
+
             // Localize script for admin dashboard
             wp_localize_script($this->plugin_name, 'convly_ajax', array(
                 'ajax_url' => admin_url('admin-ajax.php'),
@@ -79,11 +97,11 @@ class Convly_Admin {
                     'edit_button' => __('Edit Button', 'convly'),
                 )
             ));
-            
+
             // For page details page
             if (isset($_GET['page']) && $_GET['page'] === 'convly-page-details') {
                 wp_enqueue_script('convly-page-details', CONVLY_PLUGIN_URL . 'admin/js/convly-page-details.js', array('jquery', 'convly-chartjs'), $this->version, true);
-                
+
                 // Also localize for page details script
                 wp_localize_script('convly-page-details', 'convly_ajax', array(
                     'ajax_url' => admin_url('admin-ajax.php'),
@@ -112,7 +130,8 @@ class Convly_Admin {
     /**
      * Add admin menu items
      */
-    public function add_plugin_admin_menu() {
+    public function add_plugin_admin_menu()
+    {
         add_menu_page(
             __('Convly Dashboard', 'convly'),
             __('Convly', 'convly'),
@@ -154,52 +173,58 @@ class Convly_Admin {
     /**
      * Render the admin dashboard
      */
-    public function display_admin_dashboard() {
+    public function display_admin_dashboard()
+    {
         require_once CONVLY_PLUGIN_DIR . 'admin/partials/convly-admin-dashboard.php';
     }
 
     /**
      * Render the page details
      */
-    public function display_page_details() {
+    public function display_page_details()
+    {
         require_once CONVLY_PLUGIN_DIR . 'admin/partials/convly-page-details.php';
     }
 
     /**
      * Render the settings page
      */
-    public function display_settings_page() {
+    public function display_settings_page()
+    {
         require_once CONVLY_PLUGIN_DIR . 'admin/partials/convly-settings-page.php';
     }
 
     /**
      * Register plugin settings
      */
-    public function register_settings() {
+    public function register_settings()
+    {
         register_setting('convly_settings', 'convly_enable_tracking');
         register_setting('convly_settings', 'convly_track_logged_in_users');
         register_setting('convly_settings', 'convly_excluded_roles');
         register_setting('convly_settings', 'convly_cache_compatibility');
     }
-	
-	/**
- * Add no-cache meta tags to admin pages
- */
-public function add_no_cache_meta() {
-    $screen = get_current_screen();
-    if ($screen && strpos($screen->id, 'convly') !== false) {
-        ?>
-        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-        <meta http-equiv="Pragma" content="no-cache" />
-        <meta http-equiv="Expires" content="0" />
-        <?php
+
+    /**
+     * Add no-cache meta tags to admin pages
+     */
+    public function add_no_cache_meta()
+    {
+        $screen = get_current_screen();
+        if ($screen && strpos($screen->id, 'convly') !== false) {
+            ?>
+            <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+            <meta http-equiv="Pragma" content="no-cache"/>
+            <meta http-equiv="Expires" content="0"/>
+            <?php
+        }
     }
-}
 
     /**
      * Check if current page is a Convly admin page
      */
-    private function is_convly_admin_page() {
+    private function is_convly_admin_page()
+    {
         $screen = get_current_screen();
         return $screen && strpos($screen->id, 'convly') !== false;
     }

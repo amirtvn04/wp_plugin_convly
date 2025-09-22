@@ -20,7 +20,7 @@
 .convly_container h5 {
     font-family: 'Montserrat', sans-serif !important;
     font-weight: 600;
-    font-size: 28px;
+    font-size: 26px;
     margin: 0;
 }
 
@@ -66,13 +66,13 @@
     font-size: 0.875rem !important;
     font-weight: 500 !important;
     border-radius: 0.75rem !important;
-    padding: 1rem 3rem !important;
+    padding: 0.8rem 1.5rem !important;
     flex: 1 !important;
     max-width: 21.25rem !important;
     outline: none !important;
     transition: box-shadow 0.2s !important;
     border: none !important;
-    width: 350px !important;
+    width: 260px !important;
 }
 
 .convly_input:focus {
@@ -90,10 +90,10 @@
 
 .convly_slect {
     border: 1px solid #EEEEEE !important;
-    font-size: 1rem !important;
+    font-size: 15px !important;
     font-weight: 600 !important;
     border-radius: 10px !important;
-    padding: 0.625rem 1.7rem !important;
+    padding: 0.5rem 1.5rem 0.5rem 1rem !important;
     outline: none !important;
     transition: box-shadow 0.2s !important;
 }
@@ -197,17 +197,17 @@
 .convly-tab-actions {
     display: flex;
     gap: 2px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    position: absolute;
-    top: -24px;
-    right: 50%;
-    transform: translateX(50%);
+    /*opacity: 0;*/
+    /*transition: opacity 0.3s ease;*/
+    /*position: absolute;*/
+    /*top: -24px;*/
+    /*right: 50%;*/
+    /*transform: translateX(50%);*/
 }
 
-.convly-tab-item:hover .convly-tab-actions {
-    opacity: 1;
-}
+/*.convly-tab-item:hover .convly-tab-actions {*/
+/*    opacity: 1;*/
+/*}*/
 
 .convly-manage-tab,
 .convly-delete-tab {
@@ -284,7 +284,7 @@
 }
 
 .convly-top5-content {
-    padding: 20px;
+    padding: 10px 20px 20px 20px;
     background: white;
     border-radius: 0 0 12px 12px;
     min-height: 200px;
@@ -301,7 +301,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px;
+    padding: 14px;
     border-radius: 8px;
     background: #f9f9f9;
     border: 1px solid #eee;
@@ -361,6 +361,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: block;
 }
 
 .convly-url {
@@ -522,6 +523,27 @@
     outline-offset: 2px !important;
 }
 
+.convly-custom-date-input {
+    padding: 11px 20px 11px 20px !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+    border-width: 1px !important;
+    border-color: rgba(0, 0, 0, 0.4) !important;
+    transition: all 300ms ease !important;
+    width: 100% !important;
+}
+
+.convly-custom-date-input:hover {
+    border-color: black !important;
+}
+
+.convly-custom-date-input:focus {
+    border-width: 2px !important;
+    border-color: black !important;
+    outline: 2px solid transparent !important;
+    outline-offset: 2px !important;
+}
+
 .convly_custom_input_box:focus-within .convly_custom_label, .not-empty .convly_custom_label {
     top: 16px !important;
     font-size: 12px !important;
@@ -613,4 +635,13 @@
 .convly_box_manage_content {
     display: flex;
     justify-content: space-between;
+}
+
+.convly-content a {
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.column-clicks a {
+    color: rgb(0, 0, 0) !important;
 }

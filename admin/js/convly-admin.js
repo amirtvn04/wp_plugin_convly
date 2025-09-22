@@ -43,31 +43,40 @@
     function loadSummaryCards() {
         $('.convly-card').each(function () {
             const metric = $(this).data('metric');
-            const period = $(this).find('.convly-period-select').val();
-            loadSummaryCard(metric, period);
+            const period = '7_days';
+            loadSummaryCard(metric, period, true);
         });
     }
 
     // Load individual summary card
-    function loadSummaryCard(metric, period) {
+    function loadSummaryCard(metric, period, isInitialLoad) {
         const $card = $(`.convly-card[data-metric="${metric}"]`);
+        const $target = isInitialLoad ? $card : $('.convly-metric');
 
         const titles = {
-            'conversion_rate': 'Conversion Rate',
-            'total_views': 'Total Views',
+            'conversion_rate': 'Total Conversion Rate',
+            'total_views': 'Total Views (Visitors)',
             'total_clicks': 'Total Clicks',
         };
 
         const title = titles[metric] || metric;
+        $target.removeClass("fade-in");
 
-        $card.addClass("loading");
-        $card.html(`
+        if (isInitialLoad){
+            $target.html(`
         <div class="convly_skeleton h-7 w-44 mb-4"></div>
         <div class="flex justify-between items-center mt-2.5">
             <span class="convly_skeleton w-22 h-10"></span>
             <span class="convly_skeleton h-10 w-20"></span>
         </div>
-    `);
+        `);
+        } else {
+            $target.html(`
+            <span class="convly_skeleton w-22 h-10" style="margin-top: 10px"></span>
+            <span class="convly_skeleton h-10 w-20" style="margin-top: 10px"></span>
+        `);
+        }
+
 
         $.ajax({
             url: convly_ajax.ajax_url,
@@ -79,12 +88,19 @@
                 period: period
             },
             success: function (response) {
-                $card.addClass('fade-in');
+                $target.addClass('fade-in');
                 if (response.success) {
+                    let displayValue = response.data.value;
+
+                    // Add unique views in parentheses for total_views metric
+                    if (metric === 'total_views' && response.data.unique_views !== null) {
+                        displayValue += ` (${response.data.unique_views})`;
+                    }
+
                     $card.removeClass("loading").html(`
-                    <h5 class="text-gray-500 font-semibold">${title}</h5>
+                    <h5 class="text-gray-500 font-semibold" style="font-size: 18px">${title}</h5>
                     <div class="convly-metric flex justify-between items-center mt-2.5">
-                        <span class="convly-metric-value text-40 font-bold">${response.data.value}</span>
+                        <span class="convly-metric-value font-bold" style="font-size: 28px">${displayValue}</span>
                         <span class="convly-metric-change text-lg font-semibold rounded-3xl px-3.5 py-1"></span>
                     </div>
                 `);
@@ -168,7 +184,7 @@
                         </div>
                         
                         <div id="time-filter" 
-                            class="text-base flex items-center gap-x-7.5 mt-6.5 font-medium text-gray-500 *:cursor-pointer">
+                            class="text-base flex items-center mt-6.5 font-medium text-gray-500 *:cursor-pointer" style="column-gap: 15px">
                             <span class="item_filter item_filter_1" data-period="12_months">12 months</span>
                             <span class="item_filter item_filter_1" data-period="6_months">6 months</span>
                             <span class="item_filter item_filter_1" data-period="3_months">3 months</span>
@@ -210,6 +226,11 @@
         $('.item_filter_1').on('click', function () {
             const period = $(this).data('period');
             loadMainChart(period, false);
+
+            $('.convly-card').each(function () {
+                const metric = $(this).data('metric');
+                loadSummaryCard(metric, period, false);
+            });
         });
 
         const container = document.getElementById('time-filter');
@@ -294,9 +315,9 @@
 
         if (showSkeleton) {
             $container.html(`
-            <div class="rounded-xl bg-white p-6 relative" style="flex: 1">
+            <div class="rounded-xl bg-white p-6 relative" style="width: 350px">
                 <div class="convly_skeleton h-10 w-44 mb-6"></div>
-                <div class="flex items-center gap-x-7 mt-8 mb-9">
+                <div class="flex items-center gap-x-7 mt-8" style="margin-bottom: 30px">
                     <div class="convly_skeleton w-25 h-7"></div>
                     <div class="convly_skeleton w-25 h-7"></div>
                     <div class="convly_skeleton w-25 h-7"></div>
@@ -356,7 +377,7 @@
             
             <div id="active-bg-2" class="absolute top-0 left-0 h-full rounded-3xl bg-gray-100 transition-all duration-300 "></div>
             
-            <div id="time-filter-2" class="text-base flex items-center gap-x-5 mt-6.5 font-medium text-gray-500">
+            <div id="time-filter-2" class="text-base flex items-center mt-6.5 font-medium text-gray-500">
                 <span class="tab-button item_filter item_filter_2 ${tab === 'pages' ? 'active' : ''}" data-tab="pages">Pages</span>
                 <span class="tab-button item_filter item_filter_2 ${tab === 'products' ? 'active' : ''}" data-tab="products">Products</span>
                 <span class="tab-button item_filter item_filter_2 ${tab === 'posts' ? 'active' : ''}" data-tab="posts">Posts</span>
@@ -386,8 +407,7 @@
             <div class="convly-top5-item ${rankClass}">
                 <div class="convly-rank">${index + 1}</div>
                 <div class="convly-content">
-                    <div class="convly-title">${escapeHtml(item.post_title || item.page_title || 'Untitled')}</div>
-                    <div class="convly-url">${escapeHtml(item.page_url || item.guid || '')}</div>
+                    <a href="?page=convly-page-details&page_id=${item.page_id}" class="convly-title" style="font-size: 16px">${escapeHtml(item.post_title || item.page_title || 'Untitled')}</a>
                 </div>
                 <div class="convly-stats">
                     <span class="convly-rate">${conversionRate}%</span>
@@ -552,7 +572,7 @@
             </div>
         </div>
         
-        <div id="tabs" class="flex gap-x-3 mt-15 border-b border-gray3 text-base font-semibold">
+        <div id="tabs" class="flex gap-x-3 border-b border-gray3 font-semibold" style="font-size: 16px; margin-top: 45px">
             <button class="convly-tab tab-btn active-tab" data-tab="pages">Pages</button>
             <button class="convly-tab tab-btn" data-tab="products">Products</button>
             <button class="convly-tab tab-btn" data-tab="posts">Posts</button>
@@ -561,7 +581,7 @@
         </div>
 
         <!-- Filters -->
-                <div class="flex items-center gap-10 mt-7">
+                <div class="flex items-center mt-7" style="column-gap: 20px">
 
         <div class="convly-search-container">
             <input type="text" id="page-search-input" placeholder="Search Page Name ..." class="convly_input" />
@@ -615,7 +635,7 @@
             <thead class="text-sm text-left">
                 <tr class="*:font-medium *:py-4 text-gray-500">
                     <th>STATUS</th>
-                    <th class="w-1/3">PAGE NAME</th>
+                    <th style="width: 28%">PAGE NAME</th>
                     <th>UNIQUE VISITORS</th>
                     <th>TOTAL VIEWS</th>
                     <th>BUTTON CLICKS</th>
@@ -707,7 +727,9 @@
 
         // Export PDF
         $('#convly-export-pdf').on('click', function () {
-            $('#convly-pdf-export-modal').show();
+            const tab_modal = document.getElementById('convly-pdf-export-modal');
+            tab_modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
         });
 
         // Handle PDF date range selection
@@ -1031,7 +1053,7 @@
                 <td class="column-clicks">
                     ${page.has_buttons == 1 ?
                 page.total_clicks :
-                `<button class="cursor-pointer px-3 py-2.5 border border-gray4 rounded-10px convly-add-button" data-page-id="${page.page_id}">Add Button</button>`
+                `<a class="cursor-pointer px-3 py-2.5 border border-gray4 rounded-10px convly-add-button" data-page-id="${page.page_id}" style="font-size: 14px">Add Button</a>`
             }
                 </td>
                 <td class="column-rate">
@@ -1307,7 +1329,8 @@
     function renderCustomTab(tab) {
         const tabHtml = `
         <div class="convly-tab-item" data-tab-slug="${tab.tab_slug}">
-            <button class="tab-btn convly-tab" data-tab="${tab.tab_slug}">
+        
+            <button class="convly-tab tab-btn" data-tab="${tab.tab_slug}">
                 ${escapeHtml(tab.tab_name)}
             </button>
             <div class="convly-tab-actions">
@@ -1319,7 +1342,8 @@
                         data-tab-slug="${tab.tab_slug}" title="Delete">
                     <span class="dashicons dashicons-no"></span>
                 </button>
-            </div>
+        
+        </div>
         </div>
     `;
 
@@ -1333,21 +1357,23 @@
 
         tabs.forEach(function (tab) {
             tabsHtml += `
-            <div class="convly-tab-item" data-tab-slug="${tab.tab_slug}">
-                <button class="tab-btn convly-tab" data-tab="${tab.tab_slug}">
-                    ${escapeHtml(tab.tab_name)}
+        <div class="convly-tab-item" data-tab-slug="${tab.tab_slug}">
+        
+            <button class="convly-tab tab-btn" data-tab="${tab.tab_slug}">
+                ${escapeHtml(tab.tab_name)}
+            </button>
+            <div class="convly-tab-actions">
+                <button class="convly-manage-tab" data-tab-slug="${tab.tab_slug}" 
+                        data-tab-name="${tab.tab_name}" title="Manage">
+                    <span class="dashicons dashicons-admin-generic"></span>
                 </button>
-                <div class="convly-tab-actions">
-                    <button class="convly-manage-tab" data-tab-slug="${tab.tab_slug}" 
-                            data-tab-name="${tab.tab_name}" title="Manage">
-                        <span class="dashicons dashicons-admin-generic"></span>
-                    </button>
-                    <button class="convly-delete-tab" data-tab-id="${tab.id}" 
-                            data-tab-slug="${tab.tab_slug}" title="Delete">
-                        <span class="dashicons dashicons-no"></span>
-                    </button>
-                </div>
-            </div>
+                <button class="convly-delete-tab" data-tab-id="${tab.id}" 
+                        data-tab-slug="${tab.tab_slug}" title="Delete">
+                    <span class="dashicons dashicons-no"></span>
+                </button>
+        
+        </div>
+        </div>
         `;
         });
 

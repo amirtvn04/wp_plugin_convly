@@ -183,7 +183,7 @@ class Convly_Ajax
 
         $type = isset($_POST['type']) ? sanitize_text_field($_POST['type']) : 'summary';
         $metric = isset($_POST['metric']) ? sanitize_text_field($_POST['metric']) : '';
-        $period = isset($_POST['period']) ? sanitize_text_field($_POST['period']) : '24_hours';
+        $period = isset($_POST['period']) ? sanitize_text_field($_POST['period']) : '7_days';
 
         if ($type === 'chart_data') {
             $data = $this->get_chart_data($period);
@@ -215,17 +215,38 @@ class Convly_Ajax
 
         switch ($metric) {
             case 'total_views':
-                $current_value = $wpdb->get_var($wpdb->prepare(
+                // Total views (all views)
+                $current_total_views = $wpdb->get_var($wpdb->prepare(
                     "SELECT COUNT(*) FROM $table_views WHERE view_date BETWEEN %s AND %s",
                     $current_start,
                     $current_end
                 ));
 
-                $previous_value = $wpdb->get_var($wpdb->prepare(
+                // Unique views (unique visitors)
+                $current_unique_views = $wpdb->get_var($wpdb->prepare(
+                    "SELECT COUNT(DISTINCT visitor_id) FROM $table_views WHERE view_date BETWEEN %s AND %s",
+                    $current_start,
+                    $current_end
+                ));
+
+                $previous_total_views = $wpdb->get_var($wpdb->prepare(
                     "SELECT COUNT(*) FROM $table_views WHERE view_date BETWEEN %s AND %s",
                     $previous_start,
                     $previous_end
                 ));
+
+                $previous_unique_views = $wpdb->get_var($wpdb->prepare(
+                    "SELECT COUNT(DISTINCT visitor_id) FROM $table_views WHERE view_date BETWEEN %s AND %s",
+                    $previous_start,
+                    $previous_end
+                ));
+
+                // Return both values
+                $current_value = $current_total_views;
+                $previous_value = $previous_total_views;
+
+                // Store unique views in separate field for frontend display
+                $unique_views = $current_unique_views;
                 break;
 
             case 'total_clicks':
@@ -240,12 +261,13 @@ class Convly_Ajax
                     $previous_start,
                     $previous_end
                 ));
+                $unique_views = null;
                 break;
 
             case 'conversion_rate':
                 // Current period - based on unique visitors
                 $current_visitors = $wpdb->get_var($wpdb->prepare(
-                    "SELECT COUNT(DISTINCT visitor_id) FROM $table_views WHERE view_date BETWEEN %s AND %s",
+                    "SELECT COUNT(visitor_id) FROM $table_views WHERE view_date BETWEEN %s AND %s",
                     $current_start,
                     $current_end
                 ));
@@ -274,11 +296,14 @@ class Convly_Ajax
                 $previous_value = $previous_visitors > 0 ? round(($previous_clicks / $previous_visitors) * 100, 1) : 0;
 
                 $current_value = $current_value . '%';
+                $unique_views = null;
+
                 break;
 
             default:
                 $current_value = 0;
                 $previous_value = 0;
+                $unique_views = null;
         }
 
         // Calculate change
@@ -294,7 +319,9 @@ class Convly_Ajax
 
         return array(
             'value' => $current_value,
-            'change' => $change
+            'change' => $change,
+            'unique_views' => $unique_views
+
         );
     }
 
@@ -539,7 +566,6 @@ class Convly_Ajax
         // Build ORDER BY clause
         $order_by = $this->get_order_by_clause($sort_by);
 
-        // Get total count - با در نظر گرفتن جستجو
         $total_query = $wpdb->prepare(
             "SELECT COUNT(DISTINCT p.page_id) 
          FROM $table_pages p
@@ -551,21 +577,24 @@ class Convly_Ajax
 
         $this->sync_pages_with_wp($tab, $search);
 
-        // Get pages with stats - با در نظر گرفتن جستجو
         $query = $wpdb->prepare(
             "SELECT 
         p.*,
-        IFNULL(COUNT(DISTINCT v.visitor_id), 0) as unique_visitors,
-        IFNULL(COUNT(v.id), 0) as total_views,
-        IFNULL(COUNT(DISTINCT c.id), 0) as total_clicks,
-        EXISTS(SELECT 1 FROM $table_buttons WHERE page_id = p.page_id) as has_buttons
-        FROM $table_pages p
-        LEFT JOIN $table_views v ON p.page_id = v.page_id
-        LEFT JOIN $table_clicks c ON p.page_id = c.page_id
-        WHERE $where_clause
-        GROUP BY p.page_id
-        ORDER BY $order_by
-        LIMIT %d OFFSET %d",
+        COUNT(DISTINCT v.visitor_id) as unique_visitors,
+        COUNT(DISTINCT v.id) as total_views,
+        COUNT(DISTINCT c.visitor_id) as total_clicks,
+        CASE 
+            WHEN COUNT(b.id) > 0 THEN 1 
+            ELSE 0 
+        END as has_buttons
+    FROM $table_pages p
+    LEFT JOIN $table_views v ON p.page_id = v.page_id
+    LEFT JOIN $table_clicks c ON p.page_id = c.page_id
+    LEFT JOIN $table_buttons b ON p.page_id = b.page_id
+    WHERE $where_clause
+    GROUP BY p.page_id
+    ORDER BY $order_by
+    LIMIT %d OFFSET %d",
             array_merge($where_values, [$per_page, $offset])
         );
 
@@ -621,10 +650,10 @@ class Convly_Ajax
             p.*,
             IFNULL(COUNT(DISTINCT v.visitor_id), 0) as unique_visitors,
             IFNULL(COUNT(v.id), 0) as total_views,
-            IFNULL(COUNT(DISTINCT c.id), 0) as total_clicks,
+            IFNULL(COUNT(DISTINCT c.visitor_id), 0) as total_clicks,
             CASE 
-                WHEN COUNT(v.id) = 0 THEN 0
-                ELSE (COUNT(DISTINCT c.id) / COUNT(v.id)) * 100
+                WHEN COUNT(DISTINCT v.visitor_id) = 0 THEN 0
+                ELSE (COUNT(DISTINCT c.visitor_id) / COUNT(DISTINCT v.visitor_id)) * 100
             END as conversion_rate,
         EXISTS(SELECT 1 FROM $table_buttons WHERE page_id = p.page_id) as has_buttons
          FROM $table_pages p
