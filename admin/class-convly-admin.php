@@ -100,7 +100,7 @@ class Convly_Admin
 
             // For page details page
             if (isset($_GET['page']) && $_GET['page'] === 'convly-page-details') {
-                wp_enqueue_script('convly-page-details', CONVLY_PLUGIN_URL . 'admin/js/convly-page-details.js', array('jquery', 'convly-chartjs'), $this->version, true);
+                wp_enqueue_script('convly-page-details', CONVLY_PLUGIN_URL . 'admin/js/convly-page-details.js', array('jquery', 'convly-chartjs', 'convly-apexchart'), $this->version, true);
 
                 // Also localize for page details script
                 wp_localize_script('convly-page-details', 'convly_ajax', array(

@@ -63,12 +63,12 @@
 }
 
 /* Summary Cards Section */
-.convly-summary-cards {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 30px;
-    margin-bottom: 30px;
-}
+/*.convly-summary-cards {*/
+/*    display: grid;*/
+/*    grid-template-columns: repeat(3, 1fr);*/
+/*    gap: 30px;*/
+/*    margin-bottom: 30px;*/
+/*}*/
 
 /*.convly-card {*/
 /*    background: #FFFFFF;*/
@@ -110,13 +110,13 @@
 /*    font-weight: 500;*/
 /*}*/
 
-.convly-metric-change.positive {
-    color: #10B981;
-}
+/*.convly-metric-change.positive {*/
+/*    color: #10B981;*/
+/*}*/
 
-.convly-metric-change.negative {
-    color: #EF4444;
-}
+/*.convly-metric-change.negative {*/
+/*    color: #EF4444;*/
+/*}*/
 
 /* Period Selector */
 .convly-period-select {

@@ -173,8 +173,8 @@ if (!defined('ABSPATH')) {
             <ul id="navbar" class="convly_navbar">
                 <li><a href="<?php echo admin_url('admin.php?page=convly'); ?>"
                        class="nav-link active_nav">Dashboard</a></li>
-                <li><a href="<?php echo admin_url('admin.php?page=convly-page-details'); ?>"
-                       class="nav-link">Details</a></li>
+<!--                <li><a href="--><?php //echo admin_url('admin.php?page=convly-page-details'); ?><!--"-->
+<!--                       class="nav-link">Details</a></li>-->
                 <li><a href="<?php echo admin_url('admin.php?page=convly-settings'); ?>" class="nav-link">Settings</a>
                 </li>
             </ul>
@@ -223,76 +223,76 @@ if (!defined('ABSPATH')) {
 </div>
 
 <script>
-    const loadData = {
-        card1: () => ({
-            title: "Conversion Rate",
-            number: "126",
-            change: "+ 10%",
-            changeType: "positive"
-        }),
-        card2: () => ({
-            title: "Unique Visitors",
-            number: "68%",
-            change: "- 2%",
-            changeType: "negative"
-        }),
-        card3: () => ({
-            title: "All Clicks",
-            number: "540K",
-            change: "+ 15%",
-            changeType: "positive"
-        }),
-        chart: () => ({
-            title: "Main Page",
-            filters: ["12 months", "3 months", "30 days", "7 days", "24 hours"]
-        }),
-        table: () => ({
-            title: "All Pages",
-            data: [
-                {
-                    status: "active",
-                    name: "Academy",
-                    visitors: "5",
-                    viwe: "499",
-                    clicks: null,
-                    conversion: "80%",
-                    action: "Details"
-                },
-                {
-                    status: "active",
-                    name: "weblog",
-                    visitors: "12",
-                    viwe: "459",
-                    clicks: null,
-                    conversion: "67%",
-                    action: "Details"
-                },
-                {
-                    status: "not_active",
-                    name: "about us",
-                    visitors: "25",
-                    viwe: "493",
-                    clicks: "15",
-                    conversion: "60%",
-                    action: "Details"
-                },
-                {
-                    status: "not_active",
-                    name: "contact us",
-                    visitors: "8",
-                    viwe: "436",
-                    clicks: "6",
-                    conversion: "75%",
-                    action: "Details"
-                }
-            ]
-        }),
-        top5: () => ({
-            title: "Top Fives",
-            filters: ["Pages", "Products", "Posts"],
-            pages: ["abount us", "contact us", "paymanet", "landing page", "shop"]
-        })
-    };
+    // const loadData = {
+    //     card1: () => ({
+    //         title: "Conversion Rate",
+    //         number: "126",
+    //         change: "+ 10%",
+    //         changeType: "positive"
+    //     }),
+    //     card2: () => ({
+    //         title: "Unique Visitors",
+    //         number: "68%",
+    //         change: "- 2%",
+    //         changeType: "negative"
+    //     }),
+    //     card3: () => ({
+    //         title: "All Clicks",
+    //         number: "540K",
+    //         change: "+ 15%",
+    //         changeType: "positive"
+    //     }),
+    //     chart: () => ({
+    //         title: "Main Page",
+    //         filters: ["12 months", "3 months", "30 days", "7 days", "24 hours"]
+    //     }),
+    //     table: () => ({
+    //         title: "All Pages",
+    //         data: [
+    //             {
+    //                 status: "active",
+    //                 name: "Academy",
+    //                 visitors: "5",
+    //                 viwe: "499",
+    //                 clicks: null,
+    //                 conversion: "80%",
+    //                 action: "Details"
+    //             },
+    //             {
+    //                 status: "active",
+    //                 name: "weblog",
+    //                 visitors: "12",
+    //                 viwe: "459",
+    //                 clicks: null,
+    //                 conversion: "67%",
+    //                 action: "Details"
+    //             },
+    //             {
+    //                 status: "not_active",
+    //                 name: "about us",
+    //                 visitors: "25",
+    //                 viwe: "493",
+    //                 clicks: "15",
+    //                 conversion: "60%",
+    //                 action: "Details"
+    //             },
+    //             {
+    //                 status: "not_active",
+    //                 name: "contact us",
+    //                 visitors: "8",
+    //                 viwe: "436",
+    //                 clicks: "6",
+    //                 conversion: "75%",
+    //                 action: "Details"
+    //             }
+    //         ]
+    //     }),
+    //     top5: () => ({
+    //         title: "Top Fives",
+    //         filters: ["Pages", "Products", "Posts"],
+    //         pages: ["abount us", "contact us", "paymanet", "landing page", "shop"]
+    //     })
+    // };
 
     //   ----------------------------------
 

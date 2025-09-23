@@ -85,17 +85,64 @@
         // Load each metric card
         $('.convly-card-datails').each(function () {
             const metric = $(this).data('metric');
-            loadMetricCard(metric);
+            loadMetricCard(metric, true);
         });
     }
 
     // Load individual metric card
-    function loadMetricCard(metric) {
+    function loadMetricCard(metric, isInitialLoad) {
         const $card = $(`.convly-card-datails[data-metric="${metric}"]`);
-        const $value = $card.find('.convly-metric-value');
-        const $change = $card.find('.convly-metric-change');
+        const $target = isInitialLoad ? $card : $('.convly-metric');
 
-        $value.html('<span class="convly-spinner"></span>');
+        const $card_2 = $('.convly-scroll-breakdown');
+        const $card_3 = $('.convly-device-breakdown');
+        const $target_2 = isInitialLoad ? $card_2 : $card_2.find('.breakdown-content');
+        const $target_3 = isInitialLoad ? $card_3 : $card_3.find('.breakdown-content');
+
+        const titles = {
+            'page_views': 'Page Views',
+            'unique_visitors': 'Unique Visitors',
+            'conversion_rate': 'Conversion Rate',
+            'scroll_depth': 'Scroll Depth',
+        };
+
+        const title = titles[metric] || metric;
+        $target.removeClass("fade-in");
+
+        if (isInitialLoad) {
+            $target.html(`
+        <div class="convly_skeleton h-7 w-44 mb-4"></div>
+        <div class="flex justify-between items-center mt-2.5">
+            <span class="convly_skeleton w-22 h-10"></span>
+            <span class="convly_skeleton h-10 w-20"></span>
+        </div>
+            `);
+
+            $target_2.html(`
+                    <div class="convly_skeleton h-7 w-44 mb-4"></div>
+            <div class="convly_skeleton w-full" style="height: 230px"></div>
+
+            `);
+
+            $target_3.html(`
+                    <div class="convly_skeleton h-7 w-44 mb-4"></div>
+            <div class="convly_skeleton w-full" style="height: 230px;"></div>
+
+            `);
+        } else {
+            $target.html(`
+            <span class="convly_skeleton w-22 h-10" style="margin-top: 10px"></span>
+            <span class="convly_skeleton h-10 w-20" style="margin-top: 10px"></span>
+            `);
+
+            $target_2.html(`
+            <div class="convly_skeleton w-full" style="height: 230px;"></div>
+            `);
+
+            $target_3.html(`
+            <div class="convly_skeleton w-full" style="height: 230px;"></div>
+            `);
+        }
 
         $.ajax({
             url: convly_ajax.ajax_url,
@@ -108,34 +155,122 @@
                 period: '7_days'
             },
             success: function (response) {
-                console.log(response);
+                $target.addClass('fade-in');
                 if (response.success) {
-                    $value.text(response.data.value);
+                    let displayValue = response.data.value;
 
-                    if (response.data.change !== undefined) {
-                        $change.text(response.data.change + '%');
-                        $change.removeClass('positive negative');
-                        $change.addClass(response.data.change > 0 ? 'positive' : 'negative');
-                    }
+                    $card.removeClass("loading").html(`
+                    <h5 class="text-gray-500 font-semibold" style="font-size: 18px">${title}</h5>
+                    <div class="convly-metric flex justify-between items-center mt-2.5">
+                        <span class="convly-metric-value font-bold" style="font-size: 28px">${displayValue}</span>
+                        <span class="convly-metric-change text-lg font-semibold rounded-3xl px-3.5 py-1"></span>
+                    </div>
+                `);
+                    const $change = $card.find('.convly-metric-change');
 
                     // Device breakdown for page views
                     if (metric === 'page_views' && response.data.device_breakdown) {
+                        $card_3.html(`
+                                    <h5 class="text-gray-500 font-semibold" style="font-size: 18px">Device Type</h5>
+                                    <div class="breakdown-content mt-2.5" id="chart-type" style="display: flex; justify-content: center; align-items: center;"></div>
+                        `)
+
                         const mobile = response.data.device_breakdown.mobile;
                         const desktop = response.data.device_breakdown.desktop;
-                        $card.find('.convly-device-mobile').text(`Mobile: ${mobile}%`);
-                        $card.find('.convly-device-desktop').text(`Desktop: ${desktop}%`);
+
+                        var options = {
+                            series: [mobile, desktop],
+                            chart: {
+                                width: 350,
+                                type: 'donut',
+                            },
+                            labels: [
+                                'Mobile',
+                                'Desktop',
+                            ],
+                            dataLabels: {
+                                enabled: false
+                            },
+                            responsive: [{
+                                breakpoint: 480,
+                                options: {
+                                    chart: {
+                                        width: 200
+                                    },
+                                    legend: {
+                                        show: false
+                                    }
+                                }
+                            }],
+                            legend: {
+                                position: 'right',
+                                offsetY: 0,
+                                height: 230,
+                            }
+                        };
+
+                        const chart = new ApexCharts(document.querySelector("#chart-type"), options);
+                        chart.render();
                     }
 
                     // Scroll depth breakdown
                     if (metric === 'scroll_depth' && response.data.breakdown) {
+                       $card_2.html(`
+                                    <h5 class="text-gray-500 font-semibold" style="font-size: 18px">Scroll Depth Level</h5>
+                                   <div class="breakdown-content mt-2.5" id="chart-depth"></div>
+                       `)
+
                         const b = response.data.breakdown;
-                        $card.find('.scroll-25 strong').text(b['25'] + '%');
-                        $card.find('.scroll-50 strong').text(b['50'] + '%');
-                        $card.find('.scroll-75 strong').text(b['75'] + '%');
-                        $card.find('.scroll-100 strong').text(b['100'] + '%');
-                        $card.find('.convly-scroll-progress').css('width', response.data.value);
+                        const c = response.data.value;
+
+                        var options = {
+                            series: [{
+                                name: "Scroll Depth",
+                                data: [
+                                    {x: '25%', y: b['25']},
+                                    {x: '50%', y: b['50']},
+                                    {x: '75%', y: b['75']},
+                                    {x: '100%', y: b['100']},
+                                    {x: 'ave', y: c}
+                                ]
+                            }],
+                            dataLabels: {
+                                enabled: false
+                            },
+                            chart: {
+                                type: 'bar',
+                                height: 230,
+                                toolbar: {
+                                    show: false
+                                },
+                            },
+                            xaxis: {
+                                categories: ['25% Scroll Depth', '50% Scroll Depth', '75% Scroll Depth', '100% Scroll Depth', 'Average Scroll Depth'],
+                                type: 'category'
+                            }
+                        };
+
+                        const chart = new ApexCharts(document.querySelector("#chart-depth"), options);
+                        chart.render();
+
+                    }
+
+                    if (response.data.change !== undefined && response.data.change !== null) {
+                        const changeText = response.data.change > 0
+                            ? '+' + response.data.change + '%'
+                            : response.data.change + '%';
+
+                        $change.text(changeText)
+                            .removeClass('text-green-600 bg-green-100 text-red-600 bg-red-100 text-gray-600 bg-gray-100')
+                            .addClass(
+                                response.data.change > 0 ? 'text-green-600 bg-green-100' :
+                                    response.data.change < 0 ? 'text-red-600 bg-red-100' :
+                                        'text-gray-600 bg-gray-100'
+                            );
                     }
                 }
+
+
             },
             error: function () {
                 $value.text('-');

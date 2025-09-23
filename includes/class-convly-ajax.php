@@ -465,7 +465,8 @@ class Convly_Ajax
     /**
      * Insert data
      */
-    private function sync_pages_with_wp($tab, $search = '') {
+    private function sync_pages_with_wp($tab, $search = '')
+    {
         global $wpdb;
         $table_pages = $wpdb->prefix . 'convly_pages';
 
@@ -486,11 +487,11 @@ class Convly_Ajax
                 $wpdb->insert(
                     $table_pages,
                     array(
-                        'page_id'    => $post->ID,
-                        'page_url'   => get_permalink($post->ID),
+                        'page_id' => $post->ID,
+                        'page_url' => get_permalink($post->ID),
                         'page_title' => $post->post_title,
-                        'page_type'  => $tab,
-                        'is_active'  => 1
+                        'page_type' => $tab,
+                        'is_active' => 1
                     ),
                     array('%d', '%s', '%s', '%s', '%d')
                 );
@@ -632,9 +633,9 @@ class Convly_Ajax
         }
 
         global $wpdb;
-        $table_pages   = $wpdb->prefix . 'convly_pages';
-        $table_views   = $wpdb->prefix . 'convly_views';
-        $table_clicks  = $wpdb->prefix . 'convly_clicks';
+        $table_pages = $wpdb->prefix . 'convly_pages';
+        $table_views = $wpdb->prefix . 'convly_views';
+        $table_clicks = $wpdb->prefix . 'convly_clicks';
         $table_buttons = $wpdb->prefix . 'convly_buttons';
 
         // دریافت تب (pages یا posts یا products)
@@ -642,7 +643,7 @@ class Convly_Ajax
 
         $this->sync_pages_with_wp($tab, '');
 
-        $where        = array("p.page_type = %s");
+        $where = array("p.page_type = %s");
         $where_values = array($tab);
 
         $query = $wpdb->prepare(
@@ -670,11 +671,9 @@ class Convly_Ajax
 
         wp_send_json_success(array(
             'items' => $results,
-            'tab'   => $tab
+            'tab' => $tab
         ));
     }
-
-
 
 
     /**
@@ -1423,12 +1422,19 @@ class Convly_Ajax
         $table_views = $wpdb->prefix . 'convly_views';
         $table_clicks = $wpdb->prefix . 'convly_clicks';
 
+        // Calculate date range - مشابه get_stats
         $date_range = $this->get_date_range($period);
         $current_start = $date_range['start'];
         $current_end = $date_range['end'];
 
+        // Calculate previous period for comparison - مشابه get_stats
+        $period_diff = strtotime($current_end) - strtotime($current_start);
+        $previous_start = date('Y-m-d H:i:s', strtotime($current_start) - $period_diff);
+        $previous_end = $current_start;
+
         switch ($metric) {
             case 'page_views':
+                // Current period
                 $current_value = $wpdb->get_var($wpdb->prepare(
                     "SELECT COUNT(*) FROM $table_views WHERE page_id = %d AND view_date BETWEEN %s AND %s",
                     $page_id,
@@ -1436,11 +1442,19 @@ class Convly_Ajax
                     $current_end
                 ));
 
+                // Previous period for comparison
+                $previous_value = $wpdb->get_var($wpdb->prepare(
+                    "SELECT COUNT(*) FROM $table_views WHERE page_id = %d AND view_date BETWEEN %s AND %s",
+                    $page_id,
+                    $previous_start,
+                    $previous_end
+                ));
+
                 // Get device breakdown
                 $mobile_views = $wpdb->get_var($wpdb->prepare(
                     "SELECT COUNT(*) FROM $table_views 
-                     WHERE page_id = %d AND device_type = 'mobile' 
-                     AND view_date BETWEEN %s AND %s",
+                 WHERE page_id = %d AND device_type = 'mobile' 
+                 AND view_date BETWEEN %s AND %s",
                     $page_id,
                     $current_start,
                     $current_end
@@ -1448,8 +1462,8 @@ class Convly_Ajax
 
                 $desktop_views = $wpdb->get_var($wpdb->prepare(
                     "SELECT COUNT(*) FROM $table_views 
-                     WHERE page_id = %d AND device_type = 'desktop' 
-                     AND view_date BETWEEN %s AND %s",
+                 WHERE page_id = %d AND device_type = 'desktop' 
+                 AND view_date BETWEEN %s AND %s",
                     $page_id,
                     $current_start,
                     $current_end
@@ -1459,8 +1473,17 @@ class Convly_Ajax
                 $mobile_percentage = $total_views > 0 ? round(($mobile_views / $total_views) * 100, 1) : 0;
                 $desktop_percentage = $total_views > 0 ? round(($desktop_views / $total_views) * 100, 1) : 0;
 
+                // Calculate change - مشابه get_stats
+                $change = 0;
+                if ($previous_value > 0) {
+                    $change = round((($current_value - $previous_value) / $previous_value) * 100, 1);
+                } elseif ($previous_value == 0) {
+                    $change = $current_value;
+                }
+
                 $data = array(
                     'value' => number_format($current_value),
+                    'change' => $change,
                     'device_breakdown' => array(
                         'mobile' => $mobile_percentage,
                         'desktop' => $desktop_percentage
@@ -1469,81 +1492,153 @@ class Convly_Ajax
                 break;
 
             case 'unique_visitors':
+                // Current period
                 $current_value = $wpdb->get_var($wpdb->prepare(
                     "SELECT COUNT(DISTINCT visitor_id) FROM $table_views 
-                     WHERE page_id = %d AND view_date BETWEEN %s AND %s",
+                 WHERE page_id = %d AND view_date BETWEEN %s AND %s",
                     $page_id,
                     $current_start,
                     $current_end
                 ));
 
-                $data = array('value' => number_format($current_value));
+                // Previous period for comparison
+                $previous_value = $wpdb->get_var($wpdb->prepare(
+                    "SELECT COUNT(DISTINCT visitor_id) FROM $table_views 
+                 WHERE page_id = %d AND view_date BETWEEN %s AND %s",
+                    $page_id,
+                    $previous_start,
+                    $previous_end
+                ));
+
+                // Calculate change - مشابه get_stats
+                $change = 0;
+                if ($previous_value > 0) {
+                    $change = round((($current_value - $previous_value) / $previous_value) * 100, 1);
+                } elseif ($previous_value == 0) {
+                    $change = $current_value;
+                }
+
+                $data = array(
+                    'value' => number_format($current_value),
+                    'change' => $change
+                );
                 break;
 
             case 'conversion_rate':
-                $visitors = $wpdb->get_var($wpdb->prepare(
+                // Current period
+                $current_visitors = $wpdb->get_var($wpdb->prepare(
                     "SELECT COUNT(DISTINCT visitor_id) FROM $table_views 
-         WHERE page_id = %d AND view_date BETWEEN %s AND %s",
+                 WHERE page_id = %d AND view_date BETWEEN %s AND %s",
                     $page_id,
                     $current_start,
                     $current_end
                 ));
 
-                $clicks = $wpdb->get_var($wpdb->prepare(
+                $current_clicks = $wpdb->get_var($wpdb->prepare(
                     "SELECT COUNT(*) FROM $table_clicks 
-         WHERE page_id = %d AND click_date BETWEEN %s AND %s",
+                 WHERE page_id = %d AND click_date BETWEEN %s AND %s",
                     $page_id,
                     $current_start,
                     $current_end
                 ));
 
-                $rate = $visitors > 0 ? round(($clicks / $visitors) * 100, 1) : 0;
-                $data = array('value' => $rate . '%');
+                $current_value = $current_visitors > 0 ? round(($current_clicks / $current_visitors) * 100, 1) : 0;
+
+                // Previous period
+                $previous_visitors = $wpdb->get_var($wpdb->prepare(
+                    "SELECT COUNT(DISTINCT visitor_id) FROM $table_views 
+                 WHERE page_id = %d AND view_date BETWEEN %s AND %s",
+                    $page_id,
+                    $previous_start,
+                    $previous_end
+                ));
+
+                $previous_clicks = $wpdb->get_var($wpdb->prepare(
+                    "SELECT COUNT(*) FROM $table_clicks 
+                 WHERE page_id = %d AND click_date BETWEEN %s AND %s",
+                    $page_id,
+                    $previous_start,
+                    $previous_end
+                ));
+
+                $previous_value = $previous_visitors > 0 ? round(($previous_clicks / $previous_visitors) * 100, 1) : 0;
+
+                // Calculate change - مشابه get_stats
+                $change = round($current_value - $previous_value, 1);
+
+                $data = array(
+                    'value' => $current_value . '%',
+                    'change' => $change
+                );
                 break;
 
             case 'scroll_depth':
+                // Current period
                 $avg_scroll = $wpdb->get_var($wpdb->prepare(
                     "SELECT AVG(max_scroll_depth) FROM {$wpdb->prefix}convly_scroll_depth 
-         WHERE page_id = %d AND view_date BETWEEN %s AND %s",
+                 WHERE page_id = %d AND view_date BETWEEN %s AND %s",
                     $page_id,
                     $current_start,
                     $current_end
                 ));
 
-                $data = array('value' => round($avg_scroll ?: 0) . '%');
+                // Previous period for comparison
+                $previous_avg_scroll = $wpdb->get_var($wpdb->prepare(
+                    "SELECT AVG(max_scroll_depth) FROM {$wpdb->prefix}convly_scroll_depth 
+                 WHERE page_id = %d AND view_date BETWEEN %s AND %s",
+                    $page_id,
+                    $previous_start,
+                    $previous_end
+                ));
+
+                $current_value = round($avg_scroll ?: 0);
+                $previous_value = round($previous_avg_scroll ?: 0);
+
+                // Calculate change
+                $change = 0;
+                if ($previous_value > 0) {
+                    $change = round((($current_value - $previous_value) / $previous_value) * 100, 1);
+                } elseif ($previous_value == 0) {
+                    $change = $current_value;
+                }
+
+                $data = array(
+                    'value' => $current_value . '%',
+                    'change' => $change
+                );
 
                 // Get scroll breakdown
                 $scroll_25 = $wpdb->get_var($wpdb->prepare(
                     "SELECT COUNT(*) FROM {$wpdb->prefix}convly_scroll_depth 
-         WHERE page_id = %d AND max_scroll_depth >= 25 
-         AND view_date BETWEEN %s AND %s",
+                            WHERE page_id = %d AND max_scroll_depth >= 25 
+                            AND view_date BETWEEN %s AND %s",
                     $page_id, $current_start, $current_end
                 ));
 
                 $scroll_50 = $wpdb->get_var($wpdb->prepare(
                     "SELECT COUNT(*) FROM {$wpdb->prefix}convly_scroll_depth 
-         WHERE page_id = %d AND max_scroll_depth >= 50 
-         AND view_date BETWEEN %s AND %s",
+                            WHERE page_id = %d AND max_scroll_depth >= 50 
+                            AND view_date BETWEEN %s AND %s",
                     $page_id, $current_start, $current_end
                 ));
 
                 $scroll_75 = $wpdb->get_var($wpdb->prepare(
                     "SELECT COUNT(*) FROM {$wpdb->prefix}convly_scroll_depth 
-         WHERE page_id = %d AND max_scroll_depth >= 75 
-         AND view_date BETWEEN %s AND %s",
+                            WHERE page_id = %d AND max_scroll_depth >= 75 
+                            AND view_date BETWEEN %s AND %s",
                     $page_id, $current_start, $current_end
                 ));
 
                 $scroll_100 = $wpdb->get_var($wpdb->prepare(
                     "SELECT COUNT(*) FROM {$wpdb->prefix}convly_scroll_depth 
-         WHERE page_id = %d AND max_scroll_depth >= 100 
-         AND view_date BETWEEN %s AND %s",
+                            WHERE page_id = %d AND max_scroll_depth = 100 
+                            AND view_date BETWEEN %s AND %s",
                     $page_id, $current_start, $current_end
                 ));
 
                 $total_scrolls = $wpdb->get_var($wpdb->prepare(
                     "SELECT COUNT(*) FROM {$wpdb->prefix}convly_scroll_depth 
-         WHERE page_id = %d AND view_date BETWEEN %s AND %s",
+                 WHERE page_id = %d AND view_date BETWEEN %s AND %s",
                     $page_id, $current_start, $current_end
                 ));
 
@@ -1558,21 +1653,10 @@ class Convly_Ajax
                 break;
 
             default:
-                $data = array('value' => 0);
-        }
-
-        // Calculate change from previous period
-        $period_diff = strtotime($current_end) - strtotime($current_start);
-        $previous_start = date('Y-m-d H:i:s', strtotime($current_start) - $period_diff);
-        $previous_end = $current_start;
-
-        // Get previous value for comparison
-        $previous_value = $this->get_previous_value($metric, $page_id, $previous_start, $previous_end);
-        $current_numeric = floatval(str_replace(',', '', $data['value']));
-
-        if ($previous_value > 0) {
-            $change = round((($current_numeric - $previous_value) / $previous_value) * 100, 1);
-            $data['change'] = $change;
+                $data = array(
+                    'value' => 0,
+                    'change' => 0
+                );
         }
 
         wp_send_json_success($data);
@@ -2031,7 +2115,8 @@ class Convly_Ajax
     /**
      * Sync pages with WordPress
      */
-    public function sync_pages() {
+    public function sync_pages()
+    {
         // Check permissions
         if (!current_user_can('manage_convly')) {
             wp_send_json_error('Unauthorized');

@@ -33,66 +33,53 @@ if (!$page_info) {
 }
 ?>
 
-<div class="wrap convly-page-details">
-    <h1>
-        <?php echo esc_html($page_info->page_title); ?>
-        <a href="<?php echo admin_url('admin.php?page=convly'); ?>" class="page-title-action">
-            <?php _e('Back to Dashboard', 'convly'); ?>
-        </a>
-        <a href="#" id="convly-export-page-pdf" class="page-title-action">
-            <?php _e('Export PDF', 'convly'); ?>
-        </a>
-    </h1>
+<div class="text-xl convly_container convly-page-details">
+    <!-- header -->
+    <header>
+        <div class="h-22.5 bg-black1 rounded-xl text-white/80 flex items-center justify-between px-6 mt-5">
+            <ul id="navbar" class="convly_navbar">
+                <li><a href="<?php echo admin_url('admin.php?page=convly'); ?>"
+                       class="nav-link">Dashboard</a></li>
+                <li><a href="<?php echo admin_url('admin.php?page=convly-page-details'); ?>"
+                       class="nav-link active_nav">Details</a></li>
+                <li><a href="<?php echo admin_url('admin.php?page=convly-settings'); ?>" class="nav-link">Settings</a>
+                </li>
+            </ul>
+            <img src="<?php echo CONVLY_PLUGIN_URL; ?>admin/images/image7.png" alt="convly">
+        </div>
+    </header>
+
+<!--    <button id="convly-export-page-pdf" class="px-5 py-2.5 border border-black/20 rounded-xl mr-4 cursor-pointer convly-export-btn text-base font-semibold">-->
+<!--        --><?php //_e('Export PDF', 'convly'); ?>
+<!--    </button>-->
 
     <!-- Summary Cards -->
-    <div class="convly-summary-cards">
-        <div class="convly-card-datails" data-metric="page_views">
-            <h3><?php _e('Page Views', 'convly'); ?></h3>
-            <div class="convly-metric">
-                <span class="convly-metric-value">-</span>
-                <span class="convly-metric-change"></span>
-            </div>
-            <div class="convly-device-breakdown">
-                <span class="convly-device-mobile"></span>
-                <span class="convly-device-desktop"></span>
-            </div>
+    <div class="convly_grid_number" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 24px; margin-top: 24px">
+        <div class="convly-card-datails bg-white rounded-xl" style="padding: 22px" data-metric="page_views">
+
         </div>
 
-        <div class="convly-card-datails" data-metric="unique_visitors">
-            <h3><?php _e('Unique Visitors', 'convly'); ?></h3>
-            <div class="convly-metric">
-                <span class="convly-metric-value">-</span>
-                <span class="convly-metric-change"></span>
-            </div>
+        <div class="convly-card-datails bg-white rounded-xl" style="padding: 22px" data-metric="unique_visitors">
+
         </div>
 
-        <div class="convly-card-datails" data-metric="conversion_rate">
-            <h3><?php _e('Conversion Rate', 'convly'); ?></h3>
-            <div class="convly-metric">
-                <span class="convly-metric-value">-</span>
-                <span class="convly-metric-change"></span>
-            </div>
+        <div class="convly-card-datails bg-white rounded-xl" style="padding: 22px" data-metric="conversion_rate">
+
         </div>
 
-        <div class="convly-card-datails" data-metric="scroll_depth">
-            <h3><?php _e('Average Scroll Depth', 'convly'); ?></h3>
-            <div class="convly-metric">
-                <span class="convly-metric-value">-</span>
-                <span class="convly-metric-suffix">%</span>
-            </div>
-            <div class="convly-scroll-breakdown">
-                <div class="convly-scroll-bar">
-                    <div class="convly-scroll-progress"></div>
-                </div>
-                <div class="convly-scroll-stats">
-                    <span class="scroll-25">25%: <strong>-</strong></span>
-                    <span class="scroll-50">50%: <strong>-</strong></span>
-                    <span class="scroll-75">75%: <strong>-</strong></span>
-                    <span class="scroll-100">100%: <strong>-</strong></span>
-                </div>
-            </div>
+        <div class="convly-card-datails bg-white rounded-xl" style="padding: 22px" data-metric="scroll_depth">
+
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 24px; margin-bottom: 24px">
+        <div class="convly-device-breakdown bg-white rounded-xl" style="padding: 22px; grid-column: span 2">
+
         </div>
 
+        <div class="convly-scroll-breakdown bg-white rounded-xl" style="padding: 22px; grid-column: span 4" data-metric="scroll_depth">
+
+        </div>
     </div>
 
 
@@ -110,6 +97,7 @@ if (!$page_info) {
         <div class="convly-chart-wrapper">
             <canvas id="convly-views-chart"></canvas>
         </div>
+        <div id="chart"></div>
     </div>
 
     <!-- Buttons Section -->
