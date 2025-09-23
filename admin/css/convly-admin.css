@@ -130,28 +130,28 @@
 }
 
 /* Chart Container */
-.convly-chart-container {
-    background: #FFFFFF;
-    border-radius: 12px;
-    padding: 25px 30px;
-    margin-bottom: 30px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
+/*.convly-chart-container {*/
+/*    background: #FFFFFF;*/
+/*    border-radius: 12px;*/
+/*    padding: 25px 30px;*/
+/*    margin-bottom: 30px;*/
+/*    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);*/
+/*}*/
 
-.convly-chart-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-}
+/*.convly-chart-header {*/
+/*    display: flex;*/
+/*    justify-content: space-between;*/
+/*    align-items: center;*/
+/*    margin-bottom: 30px;*/
+/*}*/
 
-.convly-chart-header h2 {
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 600;
-    font-size: 28px;
-    color: #060606;
-    margin: 0;
-}
+/*.convly-chart-header h2 {*/
+/*    font-family: 'Montserrat', sans-serif;*/
+/*    font-weight: 600;*/
+/*    font-size: 28px;*/
+/*    color: #060606;*/
+/*    margin: 0;*/
+/*}*/
 
 /* Period Buttons */
 .convly-period-buttons {

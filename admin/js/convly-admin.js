@@ -267,6 +267,7 @@
         if (window.convlyChart) {
             window.convlyChart.destroy();
         }
+        console.log(data)
 
         const options = {
             series: [{

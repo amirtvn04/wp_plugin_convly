@@ -18,7 +18,7 @@
 
         // Load initial data
         loadPageStats();
-        loadViewsChart('7_days');
+        loadViewsChart('7_days', true);
         loadButtons();
 
         // Event handlers
@@ -27,19 +27,6 @@
 
     // Bind event handlers
     function bindEventHandlers() {
-        // Chart period buttons
-        $('.convly-period-btn').on('click', function () {
-            $('.convly-period-btn').removeClass('active');
-            $(this).addClass('active');
-            const period = $(this).data('period');
-            loadViewsChart(period);
-        });
-
-        // Add button
-        $('.convly-add-button').on('click', function () {
-            openButtonModal();
-        });
-
         // Button form submission
         $('#convly-button-form').on('submit', function (e) {
             e.preventDefault();
@@ -49,6 +36,7 @@
         // Modal close
         $('.convly-modal-close, .convly-modal-cancel').on('click', function () {
             $('.convly-modal').hide();
+            document.body.style.overflow = '';
         });
 
         // Close modal when clicking outside
@@ -85,12 +73,12 @@
         // Load each metric card
         $('.convly-card-datails').each(function () {
             const metric = $(this).data('metric');
-            loadMetricCard(metric, true);
+            loadMetricCard(metric,'7_days', true);
         });
     }
 
     // Load individual metric card
-    function loadMetricCard(metric, isInitialLoad) {
+    function loadMetricCard(metric, period, isInitialLoad) {
         const $card = $(`.convly-card-datails[data-metric="${metric}"]`);
         const $target = isInitialLoad ? $card : $('.convly-metric');
 
@@ -152,7 +140,7 @@
                 nonce: convly_ajax.nonce,
                 page_id: pageId,
                 metric: metric,
-                period: '7_days'
+                period: period
             },
             success: function (response) {
                 $target.addClass('fade-in');
@@ -279,7 +267,31 @@
     }
 
     // Load views chart
-    function loadViewsChart(period) {
+    function loadViewsChart(period, isInitialLoad = true) {
+        const $target = isInitialLoad ? $('#convly-view-chart-container') : $('#convly-view-chart');
+
+        const originalHtml = $target.html();
+        const originalClasses = $target.attr('class');
+
+        $target.addClass("loading");
+        $target.removeClass("fade-in");
+
+        if (isInitialLoad) {
+            $target.html(`
+            <div class="convly_skeleton h-10 w-44 mb-6"></div>
+            <div class="flex items-center gap-x-7 mt-8 mb-9">
+                <div class="convly_skeleton w-25 h-7"></div>
+                <div class="convly_skeleton w-25 h-7"></div>
+                <div class="convly_skeleton w-25 h-7"></div>
+                <div class="convly_skeleton w-25 h-7"></div>
+                <div class="convly_skeleton w-25 h-7"></div>
+            </div>
+            <div class="convly_skeleton h-87.5 w-full"></div>
+        `);
+        } else {
+            $target.html(`<div class="convly_skeleton h-87.5 w-full"></div>`);
+        }
+
         $.ajax({
             url: convly_ajax.ajax_url,
             type: 'POST',
@@ -287,105 +299,177 @@
                 action: 'convly_get_page_chart_data',
                 nonce: convly_ajax.nonce,
                 page_id: pageId,
-                chart_type: 'all_metrics', // تغییر به all_metrics
+                chart_type: 'all_metrics',
                 period: period
             },
             success: function (response) {
                 if (response.success) {
-                    renderViewsChart(response.data);
+                    $target.addClass('fade-in');
+                    $target.removeClass("loading");
+
+                    if (isInitialLoad) {
+                        $target.html(`
+                        <h5 class="text-3xl font-bold">Page Views</h5>
+                        
+                        <div id="active-bg-3" 
+                            class="absolute top-0 left-0 h-full rounded-3xl bg-gray-100 transition-all duration-300 -z-10">
+                        </div>
+                        
+                        <div id="time-filter" 
+                            class="text-base flex items-center mt-6.5 font-medium text-gray-500 *:cursor-pointer" style="column-gap: 15px">
+                            <span class="item_filter item_filter_3" data-period="12_months">12 months</span>
+                            <span class="item_filter item_filter_3" data-period="6_months">6 months</span>
+                            <span class="item_filter item_filter_3" data-period="3_months">3 months</span>
+                            <span class="item_filter item_filter_3" data-period="30_days">30 days</span>
+                            <span class="item_filter item_filter_3 active" data-period="7_days">7 days</span>
+                            <span class="item_filter item_filter_3" data-period="24_hours">24 hours</span>
+                        </div>
+                        
+                        <div id="convly-view-chart" class="mt-5"></div>
+                    `);
+
+                        setupViewChartEventHandlers();
+
+                        renderViewsChart(response.data);
+                    } else {
+                        $target.addClass('fade-in');
+                        renderViewsChart(response.data);
+                    }
                 }
             }
         });
+    }
+
+    function setupViewChartEventHandlers() {
+        $('.item_filter_3').off('click');
+        $('.item_filter_3').on('click', function () {
+            const period = $(this).data('period');
+            loadViewsChart(period, false);
+
+            $('.convly-card-datails').each(function () {
+                const metric = $(this).data('metric');
+                loadMetricCard(metric, period, false);
+            });
+        });
+
+        const container = document.getElementById('time-filter');
+        const bg = document.getElementById('active-bg-3');
+        const buttons = container.querySelectorAll(".item_filter_3");
+
+        function moveBackgroundTo(el) {
+            const {offsetLeft, offsetTop, offsetWidth, offsetHeight} = el;
+            bg.style.width = `${offsetWidth}px`;
+            bg.style.height = `${offsetHeight}px`;
+            bg.style.transform = `translateX(${offsetLeft}px) translateY(${offsetTop}px)`;
+        }
+
+        buttons.forEach(btn => {
+            btn.addEventListener("click", () => {
+                buttons.forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                moveBackgroundTo(btn);
+            });
+        });
+
+        const activeBtn = container.querySelector(".active") || buttons[0];
+        if (activeBtn) {
+            bg.classList.remove("transition-all", "duration-300");
+            moveBackgroundTo(activeBtn);
+
+            requestAnimationFrame(() => {
+                bg.classList.add("transition-all", "duration-300");
+            });
+        }
     }
 
     // Render views chart
     function renderViewsChart(data) {
-        const canvasElement = document.getElementById('convly-views-chart');
-        if (!canvasElement) {
-            console.error('Convly: Chart canvas element not found');
-            return;
+        const chartElement = document.querySelector('#convly-view-chart');
+
+        if (window.convlyChart) {
+            window.convlyChart.destroy();
         }
 
-        const ctx = canvasElement.getContext('2d');
-
-        if (viewsChart) {
-            viewsChart.destroy();
-        }
-
-        viewsChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: data.labels,
-                datasets: [{
-                    label: 'Page Views',
-                    data: data.views,
-                    borderColor: 'rgb(54, 162, 235)',
-                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
-                    tension: 0.4,
-                    fill: true,
-                    yAxisID: 'y'
-                }, {
-                    label: 'Unique Visitors',
-                    data: data.visitors,
-                    borderColor: 'rgb(75, 192, 192)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
-                    tension: 0.4,
-                    fill: true,
-                    yAxisID: 'y'
-                }, {
-                    label: 'Conversion Rate (%)',
-                    data: data.conversion_rates,
-                    borderColor: 'rgb(255, 99, 132)',
-                    backgroundColor: 'rgba(255, 99, 132, 0.1)',
-                    tension: 0.4,
-                    fill: false,
-                    yAxisID: 'y1'
-                }]
+        const options = {
+            series: [{
+                name: 'Views',
+                data: data.views || []
+            },{
+                name: 'Visitors',
+                data: data.visitors || []
+            },{
+                name: 'Conversion Rate',
+                data: data.conversion_rates || []
+            }],
+            chart: {
+                height: 350,
+                type: 'area',
+                toolbar: {
+                    show: false
+                },
+                fontFamily: 'Montserrat'
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    mode: 'index',
-                    intersect: false,
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                curve: 'smooth'
+            },
+            xaxis: {
+                type: 'category',
+                categories: data.labels || []
+            },
+            tooltip: {
+                x: {
+                    format: 'dd/MM/yy HH:mm'
                 },
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    }
-                },
-                scales: {
-                    y: {
-                        type: 'linear',
-                        display: true,
-                        position: 'left',
-                        beginAtZero: true,
-                        ticks: {
-                            precision: 0
-                        }
-                    },
-                    y1: {
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        beginAtZero: true,
-                        max: 100,
-                        grid: {
-                            drawOnChartArea: false,
-                        },
-                        ticks: {
-                            callback: function (value) {
-                                return value + '%';
-                            }
-                        }
-                    }
-                }
-            }
-        });
+            },
+        };
+
+        window.convlyChart = new ApexCharts(chartElement, options);
+        window.convlyChart.render();
     }
 
     // Load buttons
-    function loadButtons() {
+    function loadButtons(isInitialLoad = true) {
+        const $target = $('.convly-buttons-section');
+        const $target_chart = $('.convly-button-charts')
+
+        if (isInitialLoad) {
+            $target.html(`
+                    <div class="convly_skeleton h-10 w-44 mb-8"></div>
+
+            <div class="space-y-4">
+                <div class="flex justify-between items-center py-4 border-b border-gray-200">
+                    ${Array(7).fill('<div class="convly_skeleton w-22 h-6"></div>').join('')}
+                </div>
+                <div class="space-y-5 divide-y divide-gray-200">
+                    ${Array(4).fill(`
+                        <div class="flex justify-between items-center py-4">
+                            ${Array(7).fill('<div class="convly_skeleton h-7 w-29"></div>').join('')}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            `);
+
+            $target_chart.html(`
+                <div class="rounded-xl bg-white" style="padding: 22px; margin-top: 22px">
+                    <div class="convly_skeleton h-7 w-44 mb-4"></div>
+                    <div class="convly_skeleton w-full" style="height: 230px;"></div>
+                </div>             
+                <div class="rounded-xl bg-white" style="padding: 22px; margin-top: 22px">
+                    <div class="convly_skeleton h-7 w-44 mb-4"></div>
+                    <div class="convly_skeleton w-full" style="height: 230px;"></div>
+                </div>                
+                <div class="rounded-xl bg-white" style="padding: 22px; margin-top: 22px">
+                    <div class="convly_skeleton h-7 w-44 mb-4"></div>
+                    <div class="convly_skeleton w-full" style="height: 230px;"></div>
+                </div>
+            `)
+        }
+
+
         $.ajax({
             url: convly_ajax.ajax_url,
             type: 'POST',
@@ -396,10 +480,34 @@
             },
             success: function (response) {
                 if (response.success) {
+                    $target.html(`
+                            <div class="flex items-center justify-between">
+            <h5 class="text-3xl font-bold">Tracked Buttons</h5>
+            <div class="text-base font-semibold">
+                <button id="convly-export-pdf"
+                        class="convly-add-button px-5 py-2.5 border border-black/20 rounded-xl mr-4 cursor-pointer convly-export-btn"
+                        data-page-id="${pageId}">+ Add Button
+                </button>
+            </div>
+        </div>
+
+        <div class="convly-buttons-list" id="convly-buttons-list">
+
+        </div>
+                    `);
+
                     renderButtons(response.data);
                     loadButtonCharts(response.data);
+                    bindButtonHandlers();
                 }
             }
+        });
+    }
+
+    function bindButtonHandlers() {
+        // Add button
+        $('.convly-add-button').on('click', function () {
+            openButtonModal(false);
         });
     }
 
@@ -412,24 +520,24 @@
             return;
         }
 
-        let html = '<table class="widefat fixed striped">';
-        html += '<thead><tr>';
-        html += '<th>' + convly_ajax.i18n.button_name + '</th>';
+        let html = '<table class="w-full divide-y divide-gray-200 mt-8" style="table-layout: fixed">';
+        html += '<thead class="text-sm text-left"><tr class="*:font-medium *:py-4 text-gray-500">';
+        html += '<th style="width: 33%">' + convly_ajax.i18n.button_name + '</th>';
         html += '<th>' + convly_ajax.i18n.css_id + '</th>';
         html += '<th>' + convly_ajax.i18n.type + '</th>';
         html += '<th>' + convly_ajax.i18n.clicks + '</th>';
         html += '<th>' + convly_ajax.i18n.actions + '</th>';
-        html += '</tr></thead><tbody>';
+        html += '</tr></thead><tbody class="text-base font-semibold divide-y divide-gray-200">';
 
         buttons.forEach(function (button) {
-            html += '<tr>';
+            html += '<tr class="*:py-6 fade-in">';
             html += '<td><strong>' + button.button_name + '</strong></td>';
             html += '<td><code>#' + button.button_css_id + '</code></td>';
             html += '<td>' + button.button_type + '</td>';
             html += '<td>' + button.total_clicks + '</td>';
             html += '<td>';
-            html += '<button class="button button-small convly-edit-button" data-button-id="' + button.id + '">' + convly_ajax.i18n.edit + '</button> ';
-            html += '<button class="button button-small convly-delete-button" data-button-id="' + button.id + '">' + convly_ajax.i18n.delete + '</button>';
+            html += '<a class="convly_badge convly-edit-button" data-button-id="' + button.id + '">' + convly_ajax.i18n.edit + '</a> ';
+            html += '<a class="convly_badge convly-delete-button" data-button-id="' + button.id + '">' + convly_ajax.i18n.delete + '</a>';
             html += '</td>';
             html += '</tr>';
         });
@@ -463,17 +571,17 @@
         buttons.forEach(function (button) {
             // Create chart container
             const chartHtml = `
-                <div class="convly-chart-container" data-button-id="${button.id}">
-                    <div class="convly-chart-header">
-                        <h2>${button.button_name} - ${convly_ajax.i18n.clicks}</h2>
-                        <div class="convly-chart-period-selector">
-                            <button class="convly-button-period-btn active" data-period="7_days" data-button-id="${button.id}">7 days</button>
-                            <button class="convly-button-period-btn" data-period="30_days" data-button-id="${button.id}">30 days</button>
-                            <button class="convly-button-period-btn" data-period="3_months" data-button-id="${button.id}">3 months</button>
-                        </div>
+                <div class="rounded-xl bg-white" style="padding: 22px; margin-top: 22px" data-button-id="${button.id}">
+                    <div style="display: flex; align-items: center; justify-content: space-between">
+                        <h5>${button.button_name} - ${convly_ajax.i18n.clicks}</h5>
+<!--                        <div class="convly-chart-period-selector">-->
+<!--                            <button class="convly-button-period-btn active" data-period="7_days" data-button-id="${button.id}">7 days</button>-->
+<!--                            <button class="convly-button-period-btn" data-period="30_days" data-button-id="${button.id}">30 days</button>-->
+<!--                            <button class="convly-button-period-btn" data-period="3_months" data-button-id="${button.id}">3 months</button>-->
+<!--                        </div>-->
                     </div>
-                    <div class="convly-chart-wrapper">
-                        <canvas id="convly-button-chart-${button.id}"></canvas>
+                    <div class="convly-button-chart" id="convly-button-chart-${button.id}">
+
                     </div>
                 </div>
             `;
@@ -500,6 +608,13 @@
 
     // Load individual button chart
     function loadButtonChart(buttonId, period) {
+        const $chart = $('#convly-button-chart-' + buttonId);
+        const original = $chart.html();
+
+        $chart.html(`
+         <div class="convly_skeleton w-full" style="height: 230px;"></div>
+        `)
+
         $.ajax({
             url: convly_ajax.ajax_url,
             type: 'POST',
@@ -511,50 +626,58 @@
             },
             success: function (response) {
                 if (response.success) {
+                    $chart.html(original);
                     renderButtonChart(buttonId, response.data);
+                } else {
+                    $chart.html(`<div class="text-red-500 p-4">Error loading chart</div>`);
                 }
+            },
+            error: function () {
+                $chart.html(`<div class="text-red-500 p-4">Request failed</div>`);
             }
         });
     }
 
     // Render button chart
     function renderButtonChart(buttonId, data) {
-        const ctx = document.getElementById('convly-button-chart-' + buttonId).getContext('2d');
+        const chart = document.getElementById('convly-button-chart-' + buttonId);
 
-        if (buttonCharts[buttonId]) {
-            buttonCharts[buttonId].destroy();
+        if (window.convlyCharts && window.convlyCharts[buttonId]) {
+            window.convlyCharts[buttonId].destroy();
         }
 
-        buttonCharts[buttonId] = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: data.labels,
-                datasets: [{
-                    label: convly_ajax.i18n.clicks,
-                    data: data.values,
-                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                    borderColor: 'rgb(75, 192, 192)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
+        const options = {
+            series: [{
+                name: 'Clicks',
+                data: data.values || []
+            }],
+            chart: {
+                height: 230,
+                type: 'area',
+                toolbar: {
+                    show: false
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            precision: 0
-                        }
-                    }
-                }
-            }
-        });
+                fontFamily: 'Montserrat'
+            },
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                curve: 'smooth'
+            },
+            xaxis: {
+                type: 'category',
+                categories: data.labels || []
+            },
+            tooltip: {
+                x: {
+                    format: 'dd/MM/yy HH:mm'
+                },
+            },
+        };
+
+        window.convlyChart = new ApexCharts(chart, options);
+        window.convlyChart.render();
     }
 
     // Open button modal
@@ -571,7 +694,7 @@
             $('#convly-page-id').val(pageId);
         }
 
-        $('#convly-button-modal').show();
+        $('#convly-button-modal').css('display', 'flex');
     }
 
     // Save button
@@ -596,7 +719,7 @@
             success: function (response) {
                 if (response.success) {
                     $('#convly-button-modal').hide();
-                    loadButtons();
+                    loadButtons(false);
                     showNotification('Button saved successfully', 'success');
                 } else {
                     showNotification(response.data, 'error');
@@ -617,7 +740,7 @@
             },
             success: function (response) {
                 if (response.success) {
-                    loadButtons();
+                    loadButtons(false);
                     showNotification('Button deleted successfully', 'success');
                 } else {
                     showNotification(response.data, 'error');

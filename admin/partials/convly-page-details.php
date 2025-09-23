@@ -49,12 +49,13 @@ if (!$page_info) {
         </div>
     </header>
 
-<!--    <button id="convly-export-page-pdf" class="px-5 py-2.5 border border-black/20 rounded-xl mr-4 cursor-pointer convly-export-btn text-base font-semibold">-->
-<!--        --><?php //_e('Export PDF', 'convly'); ?>
-<!--    </button>-->
+    <!--    <button id="convly-export-page-pdf" class="px-5 py-2.5 border border-black/20 rounded-xl mr-4 cursor-pointer convly-export-btn text-base font-semibold">-->
+    <!--        --><?php //_e('Export PDF', 'convly'); ?>
+    <!--    </button>-->
 
     <!-- Summary Cards -->
-    <div class="convly_grid_number" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 24px; margin-top: 24px">
+    <div class="convly_grid_number"
+         style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 24px; margin-top: 24px">
         <div class="convly-card-datails bg-white rounded-xl" style="padding: 22px" data-metric="page_views">
 
         </div>
@@ -72,86 +73,70 @@ if (!$page_info) {
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 24px; margin-bottom: 24px">
+
+    <!-- chart -->
+    <div id="convly-view-chart-container" class="rounded-xl bg-white relative z-0"
+         style="margin-top: 24px; padding: 22px">
+
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 24px; margin-bottom: 24px; margin-top: 24px">
         <div class="convly-device-breakdown bg-white rounded-xl" style="padding: 22px; grid-column: span 2">
 
         </div>
 
-        <div class="convly-scroll-breakdown bg-white rounded-xl" style="padding: 22px; grid-column: span 4" data-metric="scroll_depth">
+        <div class="convly-scroll-breakdown bg-white rounded-xl" style="padding: 22px; grid-column: span 4"
+             data-metric="scroll_depth">
 
         </div>
     </div>
 
+    <div class="convly-buttons-section rounded-xl bg-white" style="padding: 22px">
 
-    <!-- Page Views Chart -->
-    <div class="convly-chart-container">
-        <div class="convly-chart-header">
-            <h2><?php _e('Page Views Over Time', 'convly'); ?></h2>
-            <div class="convly-chart-period-selector">
-                <button class="convly-period-btn" data-period="24_hours"><?php _e('24 hours', 'convly'); ?></button>
-                <button class="convly-period-btn active" data-period="7_days"><?php _e('7 days', 'convly'); ?></button>
-                <button class="convly-period-btn" data-period="30_days"><?php _e('30 days', 'convly'); ?></button>
-                <button class="convly-period-btn" data-period="3_months"><?php _e('3 months', 'convly'); ?></button>
-            </div>
-        </div>
-        <div class="convly-chart-wrapper">
-            <canvas id="convly-views-chart"></canvas>
-        </div>
-        <div id="chart"></div>
-    </div>
-
-    <!-- Buttons Section -->
-    <div class="convly-buttons-section">
-        <div class="convly-section-header">
-            <h2><?php _e('Tracked Buttons', 'convly'); ?></h2>
-            <button class="button button-primary convly-add-button" data-page-id="<?php echo $page_id; ?>">
-                <?php _e('Add Button', 'convly'); ?>
-            </button>
-        </div>
-
-        <div class="convly-buttons-list" id="convly-buttons-list">
-            <div class="convly-loading"><?php _e('Loading buttons...', 'convly'); ?></div>
-        </div>
     </div>
 
     <!-- Button Charts -->
     <div class="convly-button-charts" id="convly-button-charts">
-        <!-- Button charts will be dynamically added here -->
+
     </div>
 </div>
 
-<!-- Button Modal (reuse from dashboard) -->
+<!-- Button Modal -->
 <div id="convly-button-modal" class="convly-modal" style="display:none;">
-    <div class="convly-modal-content">
+    <div class="convly-modal-content convly_box">
         <span class="convly-modal-close">&times;</span>
-        <h2 id="convly-button-modal-title"><?php _e('Add Button', 'convly'); ?></h2>
+        <h2 id="convly-button-modal-title" class="convly_modal_title"><?php _e('Add Button', 'convly'); ?></h2>
         <form id="convly-button-form">
             <input type="hidden" id="convly-button-id" name="button_id"/>
             <input type="hidden" id="convly-page-id" name="page_id" value="<?php echo $page_id; ?>"/>
 
-            <p>
-                <label for="convly-button-css-id"><?php _e('Button CSS ID:', 'convly'); ?></label>
-                <input type="text" id="convly-button-css-id" name="button_css_id" required/>
-                <span class="description"><?php _e('Enter the CSS ID of the button (without #)', 'convly'); ?></span>
+            <p class="convly_custom_input_box">
+                <label class="convly_custom_label"
+                       for="convly-button-css-id"><?php _e('Button CSS ID', 'convly'); ?></label>
+                <input class="convly_custom_input" type="text" id="convly-button-css-id" name="button_css_id" required/>
             </p>
+            <span class="description"><?php _e('Enter the CSS ID of the button (without #)', 'convly'); ?></span>
 
-            <p>
-                <label for="convly-button-name"><?php _e('Button Name:', 'convly'); ?></label>
-                <input type="text" id="convly-button-name" name="button_name" required/>
-                <span class="description"><?php _e('A friendly name for this button', 'convly'); ?></span>
+            <p class="convly_custom_input_box">
+                <label class="convly_custom_label"
+                       for="convly-button-name"><?php _e('Button Name', 'convly'); ?></label>
+                <input class="convly_custom_input" type="text" id="convly-button-name" name="button_name" required/>
             </p>
+            <span class="description"><?php _e('A friendly name for this button', 'convly'); ?></span>
 
-            <p>
-                <label for="convly-button-type"><?php _e('Type:', 'convly'); ?></label>
-                <select id="convly-button-type" name="button_type">
+            <p class="convly_modal_select_box">
+                <label class="convly_modal_label" for="convly-button-type"><?php _e('Type:', 'convly'); ?></label>
+                <select class="convly_custom_select" id="convly-button-type" name="button_type">
                     <option value="button"><?php _e('Button', 'convly'); ?></option>
                     <option value="link"><?php _e('Link', 'convly'); ?></option>
                 </select>
             </p>
 
-            <p>
-                <button type="submit" class="button button-primary"><?php _e('Save Button', 'convly'); ?></button>
-                <button type="button" class="button convly-modal-cancel"><?php _e('Cancel', 'convly'); ?></button>
+            <p class="convly_modal_action">
+                <button type="submit" class="convly_modal_submit"
+                        id="convly_save_button"><?php _e('Save Button', 'convly'); ?></button>
+                <button type="button"
+                        class="convly-modal-cancel convly_modal_cancel"><?php _e('Cancel', 'convly'); ?></button>
             </p>
         </form>
     </div>

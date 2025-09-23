@@ -1510,7 +1510,7 @@ class Convly_Ajax
                     $previous_end
                 ));
 
-                // Calculate change - مشابه get_stats
+                // Calculate change
                 $change = 0;
                 if ($previous_value > 0) {
                     $change = round((($current_value - $previous_value) / $previous_value) * 100, 1);
@@ -1563,7 +1563,7 @@ class Convly_Ajax
 
                 $previous_value = $previous_visitors > 0 ? round(($previous_clicks / $previous_visitors) * 100, 1) : 0;
 
-                // Calculate change - مشابه get_stats
+                // Calculate change
                 $change = round($current_value - $previous_value, 1);
 
                 $data = array(
@@ -1668,6 +1668,7 @@ class Convly_Ajax
     public function get_page_chart_data()
     {
         $this->set_no_cache_headers();
+
         // Check permissions
         if (!current_user_can('manage_convly')) {
             wp_send_json_error('Unauthorized');
@@ -1679,7 +1680,6 @@ class Convly_Ajax
         }
 
         $page_id = isset($_POST['page_id']) ? intval($_POST['page_id']) : 0;
-        $chart_type = isset($_POST['chart_type']) ? sanitize_text_field($_POST['chart_type']) : 'views';
         $period = isset($_POST['period']) ? sanitize_text_field($_POST['period']) : '7_days';
 
         if (!$page_id) {
@@ -1690,44 +1690,49 @@ class Convly_Ajax
         $table_views = $wpdb->prefix . 'convly_views';
         $table_clicks = $wpdb->prefix . 'convly_clicks';
 
+        $date_range = $this->get_date_range($period);
+        $start_date = $date_range['start'];
+        $end_date = $date_range['end'];
+
         $labels = array();
         $views_data = array();
         $visitors_data = array();
-        $clicks_data = array();
-        $conversion_data = array();
+        $conversion_rates_data = array();
 
         switch ($period) {
             case '24_hours':
-                // Hourly data
+                // Hourly data for last 24 hours
                 for ($i = 23; $i >= 0; $i--) {
-                    $hour = date('Y-m-d H:00:00', strtotime("-$i hours"));
-                    $labels[] = date('H:00', strtotime($hour));
+                    $hour_start = date('Y-m-d H:00:00', strtotime("-$i hours"));
+                    $hour_end = date('Y-m-d H:59:59', strtotime("-$i hours"));
+                    $labels[] = date('H:00', strtotime($hour_start));
 
+                    // Views
                     $views = $wpdb->get_var($wpdb->prepare(
                         "SELECT COUNT(*) FROM $table_views 
-                     WHERE page_id = %d AND view_date >= %s 
-                     AND view_date < DATE_ADD(%s, INTERVAL 1 HOUR)",
-                        $page_id, $hour, $hour
+                     WHERE page_id = %d AND view_date BETWEEN %s AND %s",
+                        $page_id, $hour_start, $hour_end
                     ));
 
+                    // Unique visitors
                     $visitors = $wpdb->get_var($wpdb->prepare(
                         "SELECT COUNT(DISTINCT visitor_id) FROM $table_views 
-                     WHERE page_id = %d AND view_date >= %s 
-                     AND view_date < DATE_ADD(%s, INTERVAL 1 HOUR)",
-                        $page_id, $hour, $hour
+                     WHERE page_id = %d AND view_date BETWEEN %s AND %s",
+                        $page_id, $hour_start, $hour_end
                     ));
 
+                    // Clicks for conversion rate
                     $clicks = $wpdb->get_var($wpdb->prepare(
                         "SELECT COUNT(*) FROM $table_clicks 
-                     WHERE page_id = %d AND click_date >= %s 
-                     AND click_date < DATE_ADD(%s, INTERVAL 1 HOUR)",
-                        $page_id, $hour, $hour
+                     WHERE page_id = %d AND click_date BETWEEN %s AND %s",
+                        $page_id, $hour_start, $hour_end
                     ));
+
+                    $conversion_rate = $visitors > 0 ? round(($clicks / $visitors) * 100, 1) : 0;
 
                     $views_data[] = intval($views);
                     $visitors_data[] = intval($visitors);
-                    $clicks_data[] = intval($clicks);
-                    $conversion_data[] = $visitors > 0 ? round(($clicks / $visitors) * 100, 1) : 0;
+                    $conversion_rates_data[] = $conversion_rate;
                 }
                 break;
 
@@ -1736,76 +1741,112 @@ class Convly_Ajax
                 // Daily data
                 $days = $period === '7_days' ? 7 : 30;
                 for ($i = $days - 1; $i >= 0; $i--) {
-                    $date = date('Y-m-d', strtotime("-$i days"));
-                    $labels[] = date('M d', strtotime($date));
+                    $day_start = date('Y-m-d 00:00:00', strtotime("-$i days"));
+                    $day_end = date('Y-m-d 23:59:59', strtotime("-$i days"));
+                    $labels[] = date('M d', strtotime($day_start));
 
                     $views = $wpdb->get_var($wpdb->prepare(
                         "SELECT COUNT(*) FROM $table_views 
-                     WHERE page_id = %d AND DATE(view_date) = %s",
-                        $page_id, $date
+                     WHERE page_id = %d AND view_date BETWEEN %s AND %s",
+                        $page_id, $day_start, $day_end
                     ));
 
                     $visitors = $wpdb->get_var($wpdb->prepare(
                         "SELECT COUNT(DISTINCT visitor_id) FROM $table_views 
-                     WHERE page_id = %d AND DATE(view_date) = %s",
-                        $page_id, $date
+                     WHERE page_id = %d AND view_date BETWEEN %s AND %s",
+                        $page_id, $day_start, $day_end
                     ));
 
                     $clicks = $wpdb->get_var($wpdb->prepare(
                         "SELECT COUNT(*) FROM $table_clicks 
-                     WHERE page_id = %d AND DATE(click_date) = %s",
-                        $page_id, $date
+                     WHERE page_id = %d AND click_date BETWEEN %s AND %s",
+                        $page_id, $day_start, $day_end
                     ));
+
+                    $conversion_rate = $visitors > 0 ? round(($clicks / $visitors) * 100, 1) : 0;
 
                     $views_data[] = intval($views);
                     $visitors_data[] = intval($visitors);
-                    $clicks_data[] = intval($clicks);
-                    $conversion_data[] = $visitors > 0 ? round(($clicks / $visitors) * 100, 1) : 0;
+                    $conversion_rates_data[] = $conversion_rate;
                 }
                 break;
 
             case '3_months':
-                // Weekly data
-                for ($i = 11; $i >= 0; $i--) {
-                    $week_start = date('Y-m-d', strtotime("-$i weeks"));
-                    $week_end = date('Y-m-d', strtotime("-$i weeks +6 days"));
-                    $labels[] = date('M d', strtotime($week_start));
+            case '6_months':
+            case '12_months':
+                // Monthly data
+                $months = $period === '3_months' ? 3 : ($period === '6_months' ? 6 : 12);
+                for ($i = $months - 1; $i >= 0; $i--) {
+                    $month_start = date('Y-m-01 00:00:00', strtotime("-$i months"));
+                    $month_end = date('Y-m-t 23:59:59', strtotime("-$i months"));
+                    $labels[] = date('M Y', strtotime($month_start));
 
                     $views = $wpdb->get_var($wpdb->prepare(
                         "SELECT COUNT(*) FROM $table_views 
-                     WHERE page_id = %d AND DATE(view_date) BETWEEN %s AND %s",
-                        $page_id, $week_start, $week_end
+                     WHERE page_id = %d AND view_date BETWEEN %s AND %s",
+                        $page_id, $month_start, $month_end
                     ));
 
                     $visitors = $wpdb->get_var($wpdb->prepare(
                         "SELECT COUNT(DISTINCT visitor_id) FROM $table_views 
-                     WHERE page_id = %d AND DATE(view_date) BETWEEN %s AND %s",
-                        $page_id, $week_start, $week_end
+                     WHERE page_id = %d AND view_date BETWEEN %s AND %s",
+                        $page_id, $month_start, $month_end
                     ));
 
                     $clicks = $wpdb->get_var($wpdb->prepare(
                         "SELECT COUNT(*) FROM $table_clicks 
-                     WHERE page_id = %d AND DATE(click_date) BETWEEN %s AND %s",
-                        $page_id, $week_start, $week_end
+                     WHERE page_id = %d AND click_date BETWEEN %s AND %s",
+                        $page_id, $month_start, $month_end
                     ));
+
+                    $conversion_rate = $visitors > 0 ? round(($clicks / $visitors) * 100, 1) : 0;
 
                     $views_data[] = intval($views);
                     $visitors_data[] = intval($visitors);
-                    $clicks_data[] = intval($clicks);
-                    $conversion_data[] = $visitors > 0 ? round(($clicks / $visitors) * 100, 1) : 0;
+                    $conversion_rates_data[] = $conversion_rate;
                 }
                 break;
+
+            default:
+                // Fallback to 7 days
+                for ($i = 6; $i >= 0; $i--) {
+                    $day_start = date('Y-m-d 00:00:00', strtotime("-$i days"));
+                    $day_end = date('Y-m-d 23:59:59', strtotime("-$i days"));
+                    $labels[] = date('M d', strtotime($day_start));
+
+                    $views = $wpdb->get_var($wpdb->prepare(
+                        "SELECT COUNT(*) FROM $table_views 
+                     WHERE page_id = %d AND view_date BETWEEN %s AND %s",
+                        $page_id, $day_start, $day_end
+                    ));
+
+                    $visitors = $wpdb->get_var($wpdb->prepare(
+                        "SELECT COUNT(DISTINCT visitor_id) FROM $table_views 
+                     WHERE page_id = %d AND view_date BETWEEN %s AND %s",
+                        $page_id, $day_start, $day_end
+                    ));
+
+                    $clicks = $wpdb->get_var($wpdb->prepare(
+                        "SELECT COUNT(*) FROM $table_clicks 
+                     WHERE page_id = %d AND click_date BETWEEN %s AND %s",
+                        $page_id, $day_start, $day_end
+                    ));
+
+                    $conversion_rate = $visitors > 0 ? round(($clicks / $visitors) * 100, 1) : 0;
+
+                    $views_data[] = intval($views);
+                    $visitors_data[] = intval($visitors);
+                    $conversion_rates_data[] = $conversion_rate;
+                }
         }
 
         wp_send_json_success(array(
             'labels' => $labels,
             'views' => $views_data,
             'visitors' => $visitors_data,
-            'clicks' => $clicks_data,
-            'conversion_rates' => $conversion_data
+            'conversion_rates' => $conversion_rates_data
         ));
     }
-
     /**
      * Get page buttons
      */

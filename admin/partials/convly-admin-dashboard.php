@@ -214,7 +214,7 @@ if (!defined('ABSPATH')) {
     </div>
 
     <!-- section 2 Table -->
-    <div id="table-section" class="rounded-xl bg-white p-6" style="margin-top: 24px">
+    <div id="table-section" class="rounded-xl bg-white" style="margin-top: 24px; padding: 22px">
 
 
     </div>
